@@ -1,0 +1,24 @@
+trigger:
+  - master
+  - develop
+
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      endpoint: github
+      name: abatplus/smef-azure-pipeline-templates
+
+variables:
+  serviceName: "bumpit-card-provider"
+
+extends:
+  template: docker/docker-build-and-push.yml@templates
+  parameters:
+    imageName: "abatplus/smef-base"
+    serviceName: $(serviceName)
+    branchName: $(Build.SourceBranchName)
+    tag: "$(serviceName)-$(Build.SourceBranchName)-0.0.1"
+    dockerfile: "./src/Dockerfile"
+    buildContext: "./src/."
+    arguments: "--build-arg PORT_TCP_API=35041"
