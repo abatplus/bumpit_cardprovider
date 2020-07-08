@@ -1,8 +1,12 @@
 ﻿using BumpitCardProvider.Redis;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+#region Usings
 using System.Collections.Generic;
+#endregion
 
 namespace BumpitCardProvider.Controllers
 {
@@ -28,92 +32,149 @@ namespace BumpitCardProvider.Controllers
 
         #region Web API
 
-        [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesDefaultResponseType]
-        public IEnumerable<string> GetBumpitCard()
-        {
-            //TODO
-            return new List<string>();
-        }
-
         /// <summary>
-        /// Creates a document in the elasticsearch database in the specified index.
+        /// Creates an entry in the redis database to the specified geolocation.
         /// </summary>
         /// <remarks>
         ///  
-        ///     POST /api/redis/device/timestamp
+        ///     POST /api/redis/
         ///     {
-        ///        "kubernetes":
-        ///        {
-        ///           "container":
-        ///           {
-        ///             "name":"con-name-1"
-        ///           },
-        ///        "message":"Error message",
-        ///        "log":
-        ///        {
-        ///           "level":"error"
-        ///        }
+        ///       "device_id": "d77b8214-f7de-4405-abda-e87cfa05abac",  
+        ///       "latitude": "12.466562656",
+        ///       "longitude": "-34.405804850",
+        ///       "card_data": 
+        ///       {
+        ///           "name": "Max", 
+        ///           "tel":"344363563", 
+        ///           "country": "Germany"
+        ///       } 
         ///     }
         /// 
         /// </remarks>
-        /// <param name="index">The index to insert a document</param>
-        /// <param name="message">The message data to send in request`s body</param>
+        /// <param name="cardData">The card data to send in request`s body</param>
         /// <returns>Result of the action</returns>
-        /// <response code="200">A document was created</response>
-        /// <response code="404">Error at inserting data</response>
+        /// <response code="201">An entry was created</response>
         /// <response code="400">If the item is null</response>
-        [HttpPost("{device/timestamp}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(Exception), StatusCodes.Status400BadRequest)]
         [ProducesDefaultResponseType]
-        public ActionResult SaveBumpitCard(string deviceId, string timestamp, [FromBody] string message)
+        public ActionResult SaveBumpitCard([FromBody] BumpitCardData cardData)
         {
-            if (message == null || string.IsNullOrWhiteSpace(deviceId) || string.IsNullOrWhiteSpace(timestamp))
+            if (cardData == null || string.IsNullOrWhiteSpace(cardData.DeviceId))
             {
                 return BadRequest();
             }
 
-            if (!redisClient.SetStringAsync(deviceId, message).Result)
-                return NotFound();
+            cardData.Timestamp = DateTime.Now;
+            string entryKey = GetGeoEntryKey(cardData.Longitude, cardData.Latitude);
 
-            return Ok();
+            if (!redisClient.GeoAddAsync(entryKey, cardData.Longitude, cardData.Latitude, JsonConvert.SerializeObject(cardData)).Result)
+                return BadRequest();
+
+            return Created(string.Empty, cardData);
         }
 
         /// <summary>
-        /// Gets data to specified index in the elasticsearch database.
+        /// Gets card data of devices located in the radius of 5m from specified device.
         /// </summary>
         /// <remarks>
         ///  
-        ///     GET /api/redis/device/timestamp
+        ///     GET /api/redis/{device}?longitude=x&latitude=y
         /// 
         /// </remarks>
-        /// <param name="index">The index to find</param>
-        /// <returns>Index data</returns>
-        /// <response code="200">En index was found</response>
-        [HttpGet("{device/timestamp}")]
+        /// <param name="device">The device to find</param>
+        /// /// <param name="longitude">The longitude of the geolocation</param>
+        /// /// <param name="latitude">The of the geolocation</param>
+        /// <returns>Card data</returns>
+        /// <response code="200">Data was found</response>
+        [HttpGet("{device}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesDefaultResponseType]
-        public IEnumerable<string> GetBumpitCard(string deviceId, string timestamp)
+        public IEnumerable<BumpitCardData> GetBumpitCard(string device, [FromQuery] double longitude, [FromQuery] double latitude)
         {
-            if (string.IsNullOrWhiteSpace(deviceId) || string.IsNullOrWhiteSpace(timestamp))
+            List<BumpitCardData> resList = new List<BumpitCardData>();
+
+            if (string.IsNullOrWhiteSpace(device))
             {
-                return null;
+                return resList;
             }
 
-            var res = redisClient.GetStringAsync(deviceId).Result;
-            //TODO
+            TimeSpan interval = new TimeSpan(0, 0, 10);
+            string entryKey = GetGeoEntryKey(longitude, latitude);
 
-            return new List<string>();
+            var res = redisClient.GeoRadiusAsync(entryKey, longitude, latitude).Result;
+            if (res != null)
+            {
+                foreach (var el in res)
+                {
+                    BumpitCardData cardData = JsonConvert.DeserializeObject<BumpitCardData>(el.Member);
+                    if (DateTime.Now - cardData.Timestamp <= interval)
+                    {
+                        if (cardData.DeviceId != device)
+                        {
+                            resList.Add(cardData);
+                        }
+                    }
+                }
+            }
+
+            return resList;
         }
 
         #endregion
 
         #region Helper Methods
 
+        private string GetGeoEntryKey(double longitude, double latitude)
+        {
+            return nameof(BumpitCardData) + ":" + Math.Round(latitude, 5) + ":" + Math.Round(longitude, 5);
+        }
 
         #endregion
     }
+
+
+    #region Mapping classes
+
+    public class BumpitCardData
+    {
+        [JsonProperty("device_id")]
+        [JsonRequired]
+        public string DeviceId
+        {
+            get; set;
+        }
+
+        [JsonProperty("longitude")]
+        [JsonRequired]
+        public double Longitude
+        {
+            get;
+            set;
+        }
+
+        [JsonProperty("latitude")]
+        [JsonRequired]
+        public double Latitude
+        {
+            get;
+            set;
+        }
+
+        [JsonProperty("card_data")]
+        public JObject CardData
+        {
+            get;
+            set;
+        }
+
+        [JsonProperty("timestamp")]
+        public DateTime Timestamp
+        {
+            get;
+            set;
+        }
+    }
+    #endregion
 }

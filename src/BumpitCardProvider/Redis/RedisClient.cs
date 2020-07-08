@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using System;
 using System.Threading.Tasks;
@@ -23,6 +22,7 @@ namespace BumpitCardProvider.Redis
         }
         #endregion
 
+        #region Implementation of IRedisClient
         public void Connect()
         {
             try
@@ -36,16 +36,23 @@ namespace BumpitCardProvider.Redis
             }
         }
 
-        public Task<bool> SetStringAsync(string key, string value)
+        public async Task<bool> GeoAddAsync(string key, double longitude, double latitude, string cardData)
         {
             var db = _redis.GetDatabase();
-            return db.StringSetAsync(key, value);
+
+            RedisKey redisKey = new RedisKey(key);
+            RedisValue value = new RedisValue(cardData);
+
+            await db.GeoAddAsync(redisKey, longitude, latitude, value);
+
+            return await db.KeyExpireAsync(redisKey, TimeSpan.FromSeconds(10));
         }
 
-        public Task<RedisValue> GetStringAsync(string key)
+        public Task<GeoRadiusResult[]> GeoRadiusAsync(string key, double longitude, double latitude)
         {
             var db = _redis.GetDatabase();
-            return db.StringGetAsync(key);
+            return db.GeoRadiusAsync(key, longitude, latitude, 5, GeoUnit.Meters);
         }
+        #endregion
     }
 }

@@ -21,7 +21,7 @@ namespace BumpitCardProvider
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IRedisClient, RedisClient>();
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -34,14 +34,7 @@ namespace BumpitCardProvider
                 app.UseDeveloperExceptionPage();
             }
 
-            try
-            {
-                redisClient.Connect();
-            }
-            catch
-            {
-                //TODO
-            }
+            redisClient.Connect();
 
             app.UseRouting();
 
