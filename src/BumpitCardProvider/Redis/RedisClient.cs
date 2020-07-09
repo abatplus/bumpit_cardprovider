@@ -17,8 +17,8 @@ namespace BumpitCardProvider.Redis
 
         public RedisClient(IConfiguration config)
         {
-            _redisHost = config["Redis:Host"];
-            _redisPort = Convert.ToInt32(config["Redis:Port"]);
+            _redisHost = config["REDIS_HOST"] ?? config["Redis:Host"];
+            _redisPort = Convert.ToInt32(config["REDIS_PORT"] ?? config["Redis:Port"]);
         }
         #endregion
 

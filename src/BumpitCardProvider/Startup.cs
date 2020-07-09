@@ -1,10 +1,11 @@
-
+#region Usings
 using BumpitCardProvider.Redis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+#endregion
 
 namespace BumpitCardProvider
 {
@@ -34,7 +35,14 @@ namespace BumpitCardProvider
                 app.UseDeveloperExceptionPage();
             }
 
-            redisClient.Connect();
+            try
+            {
+                redisClient.Connect();
+            }
+            catch
+            {
+                //TODO: ????
+            }
 
             app.UseRouting();
 
