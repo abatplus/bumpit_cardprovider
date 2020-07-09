@@ -38,16 +38,12 @@ namespace BumpitCardProvider.Controllers
         /// <remarks>
         ///  
         ///     POST /api/redis
+        ///     
         ///     {
         ///       "device_id": "d77b8214-f7de-4405-abda-e87cfa05abac",  
         ///       "latitude": "12.466562656",
         ///       "longitude": "-34.405804850",
-        ///       "card_data": 
-        ///       {
-        ///           "name": "Max", 
-        ///           "tel":"344363563", 
-        ///           "country": "Germany"
-        ///       } 
+        ///       "card_data": "name\"=\"Max\", \"tel\"='\"344363563\", \"country\" = \"Germany\" …etc\""
         ///     }
         /// 
         /// </remarks>
@@ -91,9 +87,9 @@ namespace BumpitCardProvider.Controllers
         [HttpGet("{device}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesDefaultResponseType]
-        public IEnumerable<BumpitCardData> GetBumpitCard(string device, [FromQuery] double longitude, [FromQuery] double latitude)
+        public IEnumerable<string> GetBumpitCard(string device, [FromQuery] double longitude, [FromQuery] double latitude)
         {
-            List<BumpitCardData> resList = new List<BumpitCardData>();
+            List<string> resList = new List<string>();
 
             if (string.IsNullOrWhiteSpace(device))
             {
@@ -113,7 +109,7 @@ namespace BumpitCardProvider.Controllers
                     {
                         if (cardData.DeviceId != device)
                         {
-                            resList.Add(cardData);
+                            resList.Add(cardData.CardData);
                         }
                     }
                 }
@@ -163,7 +159,7 @@ namespace BumpitCardProvider.Controllers
         }
 
         [JsonProperty("card_data")]
-        public JObject CardData
+        public string CardData
         {
             get;
             set;
