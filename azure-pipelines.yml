@@ -6,7 +6,7 @@ resources:
   repositories:
     - repository: templates
       type: github
-      endpoint: github
+      endpoint: abatplus
       name: abatplus/smef-azure-pipeline-templates
 
 variables:
