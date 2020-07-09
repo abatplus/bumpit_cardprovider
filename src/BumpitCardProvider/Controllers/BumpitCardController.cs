@@ -37,7 +37,7 @@ namespace BumpitCardProvider.Controllers
         /// </summary>
         /// <remarks>
         ///  
-        ///     POST /api/redis/
+        ///     POST /api/redis
         ///     {
         ///       "device_id": "d77b8214-f7de-4405-abda-e87cfa05abac",  
         ///       "latitude": "12.466562656",
