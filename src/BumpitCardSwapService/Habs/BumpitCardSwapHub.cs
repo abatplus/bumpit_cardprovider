@@ -3,39 +3,43 @@ using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using BumpitCardSwapService.Redis;
+using Newtonsoft.Json;
 
 namespace BumpitCardSwapService
 {
     public class BumpitCardSwapHub : Hub<IBumpitCardSwapHub>
     {
-        async Task SubcribeToSwap(SubscriptionData subsData)
+        private readonly ISubscriptionDataRepository _repository;
+
+        public BumpitCardSwapHub(ISubscriptionDataRepository repository)
         {
-            //await Groups.AddToGroupAsync(Context.ConnectionId, boardId.ToString());
-
-            List<JObject> list = new List<JObject>();
-
-            await Clients.Caller.Subscribed(list);
+            _repository = repository;
         }
 
-        async Task UnSubcribeFromSwap(SubscriptionData subsData)
+        async Task SubcribeToSwap(SubscriptionData subsData)
         {
-            List<JObject> list = new List<JObject>();
+            _repository.SaveSubscriber(subsData);
 
-            await Clients.Caller.UnSubscribed(list);
+            await Clients.Caller.Subscribed(_repository.GetAllSubscribers(subsData.DeviceId));
+        }
+
+        async Task UnSubcribeFromSwap(string deviceId)
+        {
+            _repository.DeleteSubscriber(deviceId);
+            await Clients.Caller.UnSubscribed(_repository.GetAllSubscribers(deviceId));
         }
 
         async Task UpdateGeolocationData(string deviceId, double longitude, double latitude)
         {
-            List<JObject> list = new List<JObject>();
-
-            await Clients.Caller.GeolocationDataUpdated(list);
+            _repository.UpdateGeolocationData(deviceId, longitude, latitude);
+            await Clients.Caller.GeolocationDataUpdated(_repository.GetAllSubscribers(deviceId));
         }
 
         async Task UpdateSubscriptionData(string deviceId, string firstName, string lastName)
         {
-            List<JObject> list = new List<JObject>();
-
-            await Clients.Caller.SubscriptionDataUpdated(list);
+            _repository.UpdateSubscriptionData(deviceId, firstName, lastName);
+            await Clients.Caller.SubscriptionDataUpdated(_repository.GetAllSubscribers(deviceId));
         }
 
         async Task StartExchangeRequest(string deviceIdSender, string deviceIdRecipient)
