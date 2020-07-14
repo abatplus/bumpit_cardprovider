@@ -7,7 +7,7 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
-COPY ["BumpitCardSwapService/BumpitCardExchangeService.csproj", "BumpitCardExchangeService/"]
+COPY ["BumpitCardExchangeService/BumpitCardExchangeService.csproj", "BumpitCardExchangeService/"]
 RUN dotnet restore "BumpitCardExchangeService/BumpitCardExchangeService.csproj"
 COPY . .
 WORKDIR "/src/BumpitCardExchangeService"

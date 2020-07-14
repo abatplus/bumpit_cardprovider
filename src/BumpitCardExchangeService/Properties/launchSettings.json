@@ -4,7 +4,7 @@
     "anonymousAuthentication": true,
     "iisExpress": {
       "applicationUrl": "http://localhost:60830/swaphub",
-      "sslPort": 44371
+      "sslPort": 0
     }
   },
   "$schema": "http://json.schemastore.org/launchsettings.json",
@@ -12,12 +12,11 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "BumpitCardSwapService": {
+    "BumpitCardExchangeService": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swaphub",

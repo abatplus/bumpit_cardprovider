@@ -27,33 +27,34 @@ namespace BumpitCardExchangeService
         async Task UnsubcribeFromCardExchange(string deviceId)
         {
             _repository.DeleteSubscriber(deviceId);
-            await Clients.Caller.UnSubscribed("Erfolgreich abgemeldet.");
+            await Clients.Caller.Unsubscribed("Erfolgreich abgemeldet.");
         }
 
         async Task UpdateGeolocation(string deviceId, double longitude, double latitude)
         {
             _repository.UpdateGeolocation(deviceId, longitude, latitude);
-            await Clients.Caller.GeolocationDataUpdated(_repository.GetNearestSubscribers(deviceId));
+            await Clients.Caller.GeolocationChanged(_repository.GetNearestSubscribers(deviceId));
         }
 
         async Task UpdateSubcriberDescription(string deviceId, string subcriberDescription)
         {
             _repository.UpdateSubcriberDescription(deviceId, subcriberDescription);
-            await Clients.Caller.SubscriptionDataUpdated("message text");
+            await Clients.Caller.SubscriptionPublicInfoChanged("Ihre Anzeigedaten wurden erfolgreich geändert.");
         }
 
         async Task RequestCardExchange(string deviceIdCaller, string deviceIdOfCardOnwer)
         {
+            //TODO: send to deviceIdOfCardOnwer
+            await Clients.Caller.CardExchangeRequesting(deviceIdOfCardOnwer, "TODO: send owner data");
 
-            //TODO
-            await Clients.Caller.ReceivedExchangeRequest(deviceIdOfCardOnwer, String.Empty);
+            //TODO: send to deviceIdCaller request confirmation
+            await Clients.Caller.WaitingOfCardData("Warte auf Bestätigung");
         }
-
 
         async Task SendCardDataToConfirmedRecipient(string deviceIdCaller, string deviceIdRecipient, string visitCardOfCaller)
         {
-            //TODO
-            await Clients.Caller.ReceivedCardData(String.Empty, String.Empty);
+            //TODO: check that deviceIdRecipient was published data to deviceIdCaller
+            await Clients.Caller.CardDataReceived(deviceIdCaller, visitCardOfCaller);
         }
 
     }

@@ -6,18 +6,18 @@ namespace BumpitCardExchangeService
 {
     public interface IBumpitCardExchangeHub
     {
-        Task Subscribed(IEnumerable<string> subscribedDevices);
+        Task Subscribed(IEnumerable<string> nearestSubscribers);
 
-        Task UnSubscribed(string message);
+        Task Unsubscribed(string statusMessage);
 
-        Task GeolocationDataUpdated(IEnumerable<string> subscribedDevices);
+        Task GeolocationChanged(IEnumerable<string> nearestSubscribers);
 
-        Task SubscriptionDataUpdated(string message);
+        Task SubscriptionPublicInfoChanged(string statusMessage);
         
-        Task ReceivedExchangeRequest(string deviceIdSender, string senderData);
+        Task CardExchangeRequesting(string deviceIdSender, string senderDescription);
 
-        Task ExchangeRequestStarted(string deviceIdRecip, string recipData);
+        Task WaitingOfCardData(string statusMessage);
 
-        Task ReceivedCardData(string idSender, string cardDataSender);
+        Task CardDataReceived(string deviceIdSender, string cardDataSender);
     }
 }
