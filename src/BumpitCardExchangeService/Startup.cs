@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BumpitCardSwapService.Redis;
+using BumpitCardExchangeService.Redis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace BumpitCardSwapService
+namespace BumpitCardExchangeService
 {
     public class Startup
     {
@@ -47,7 +47,7 @@ namespace BumpitCardSwapService
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapHub<BumpitCardSwapHub>("/swaphub");
+                endpoints.MapHub<BumpitCardExchangeHub>("/swaphub");
             });
         }
     }

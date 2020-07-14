@@ -2,7 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 
-namespace BumpitCardSwapService.Redis
+namespace BumpitCardExchangeService.Redis
 {
     public class SubscriptionDataRepository : ISubscriptionDataRepository
     {
@@ -13,9 +13,9 @@ namespace BumpitCardSwapService.Redis
             this.redisClient = redisClient;
         }
 
-        public IEnumerable<JObject> GetAllSubscribers(string device)
+        public IEnumerable<string> GetNearestSubscribers(string device)
         {
-            List<JObject> resList = new List<JObject>();
+            List<string> resList = new List<string>();
 
             if (string.IsNullOrWhiteSpace(device))
             {
@@ -30,8 +30,9 @@ namespace BumpitCardSwapService.Redis
                     if (el.Member != device)
                     {
                         string subscData = redisClient.GetString(el.Member).Result;
-                        JObject subscDataJson = JsonConvert.DeserializeObject<JObject>(subscData);
-                        resList.Add(subscDataJson);
+                        resList.Add(JsonConvert.SerializeObject(
+                            new SubscriptionData() { DeviceId = el.Member, AdditionalData = subscData }
+                        ));
                     }
                 }
             }
@@ -39,11 +40,10 @@ namespace BumpitCardSwapService.Redis
             return resList;
         }
 
-        public async void SaveSubscriber(SubscriptionData subsData)
+        public async void SaveSubscriber(string deviceId, double longitude, double latitude, string subcriberDescription)
         {
-            await redisClient.SetString(subsData.DeviceId, JsonConvert.SerializeObject(subsData));
-            await redisClient.GeoAdd(GetGeoEntryKey(), subsData.Longitude, subsData.Latitude,
-              subsData.DeviceId);
+            await redisClient.SetString(deviceId, subcriberDescription);
+            await redisClient.GeoAdd(GetGeoEntryKey(), longitude, latitude, deviceId);
         }
 
         public async void DeleteSubscriber(string deviceId)
@@ -54,25 +54,20 @@ namespace BumpitCardSwapService.Redis
 
         private string GetGeoEntryKey()
         {
-            return nameof(SubscriptionData);
+            return "BumpitGeoEntryKey";
         }
 
-        public async void UpdateGeolocationData(string deviceId, double longitude, double latitude)
+        public async void UpdateGeolocation(string deviceId, double longitude, double latitude)
         {
             redisClient.GeoRemove(GetGeoEntryKey(), deviceId);
-            await redisClient.GeoAdd(GetGeoEntryKey(), longitude, latitude,deviceId);
+            await redisClient.GeoAdd(GetGeoEntryKey(), longitude, latitude, deviceId);
         }
 
-        public async void UpdateSubscriptionData(string deviceId, string firstName, string lastName)
+        public async void UpdateSubcriberDescription(string deviceId, string subcriberDescription)
         {
-            await redisClient.SetString(deviceId, JsonConvert.SerializeObject(new SubscriptionData()
-            {
-                DeviceId = deviceId,
-                FirstName = firstName,
-                LastName = lastName
-            }));
+            await redisClient.SetString(deviceId, subcriberDescription);
         }
 
-       
+
     }
 }

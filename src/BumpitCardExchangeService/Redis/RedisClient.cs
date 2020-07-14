@@ -3,7 +3,7 @@ using StackExchange.Redis;
 using System;
 using System.Threading.Tasks;
 
-namespace BumpitCardSwapService.Redis
+namespace BumpitCardExchangeService.Redis
 {
     public class RedisClient : IRedisClient
     {

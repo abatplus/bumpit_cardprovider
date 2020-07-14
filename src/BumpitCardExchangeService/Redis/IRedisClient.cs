@@ -1,7 +1,7 @@
 ﻿using StackExchange.Redis;
 using System.Threading.Tasks;
 
-namespace BumpitCardSwapService.Redis
+namespace BumpitCardExchangeService.Redis
 {
     public interface IRedisClient
 
