@@ -6,8 +6,14 @@ WORKDIR /app
 ARG NUGET_USERNAME
 ARG NUGET_PASSWORD
 
+ENV REDIS_HOST="localhost"
+ENV REDIS_PORT="6379"
+
+ENV REDIS_GEORADIUS="5"
+ENV REDIS_KEY_EXPIRE_TIMEOUT="2"
+
 # Copy everything else and build
-COPY BumpitCardProvider/ ./BumpitCardProvider/
+COPY BumpitCardExchangeService/ ./BumpitCardExchangeService/
 
 # Set nuget.config
 COPY nuget.config.template ./nuget.config
@@ -30,7 +36,7 @@ RUN sed -i -e "s/REPLACE_USERNAME/$NUGET_USERNAME/g;s/REPLACE_PASSWORD/$NUGET_PA
 #  /d:sonar.login=${SONAR_TOKEN} \
 #  /d:sonar.cs.analyzer.projectOutPaths=out
 
-RUN dotnet publish -c Release -o out ./BumpitCardProvider
+RUN dotnet publish -c Release -o out ./BumpitCardExchangeService
 
 # install Java for sonarscanner end
 #RUN apt-get update && \
@@ -52,4 +58,4 @@ WORKDIR /app
 COPY --from=build-env /app/out .
 
 # RUN dotnet ef database update
-ENTRYPOINT ["dotnet", "BumpitCardProvider.dll"]
+ENTRYPOINT ["dotnet", "BumpitCardExchangeService.dll"]
