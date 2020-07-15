@@ -41,14 +41,14 @@ namespace BumpitCardExchangeService
       await Clients.Client(peerDeviceId).CardExchangeRequested(deviceId, displayName);
 
       //TODO: send to deviceIdCaller request confirmation
-      await Clients.Caller.WaitingForAcceptance(peerDeviceId, displayName);
+      await Clients.Caller.WaitingForAcceptance(peerDeviceId);
     }
 
-    public async Task AcceptCardExchange(string deviceId, string peerDeviceId, string displayName)
+    public async Task AcceptCardExchange(string deviceId, string peerDeviceId, string displayName, string cardData)
     {
-      await Clients.Client(deviceId).CardExchangeAccepted(peerDeviceId, displayName);
+      await Clients.Client(deviceId).CardExchangeAccepted(peerDeviceId, displayName, cardData);
 
-      await Clients.Caller.AcceptanceSent(deviceId, displayName);
+      await Clients.Caller.AcceptanceSent(deviceId);
     }
 
     public async Task SendCardData(string deviceId, string peerDeviceId, string displayName, string cardData)
@@ -56,7 +56,7 @@ namespace BumpitCardExchangeService
       //TODO: check that deviceIdRecipient was published data to deviceIdCaller
       await Clients.Client(peerDeviceId).CardDataReceived(deviceId, displayName, cardData);
 
-      await Clients.Caller.CardDataSent(peerDeviceId, displayName);
+      await Clients.Caller.CardDataSent(peerDeviceId);
     }
   }
 }

@@ -15,13 +15,13 @@ public interface ICardExchangeHub
   //
   //                         Accept (A)
   // Accepted (B)<--------------------
-  //                  AcceptanceSent<-
+  //               AcceptanceSent(A)<-
   //
   // Send (B)
   //   ------------------->Received (A)
-  //   -> Sent()
+  //   -> Sent (B)
 
   Task RequestCardExchange(string deviceId, string peerDeviceId, string displayName);
-  Task AcceptCardExchange(string deviceId, string peerDeviceId, string displayName);
+  Task AcceptCardExchange(string deviceId, string peerDeviceId, string displayName, string cardData);
   Task SendCardData(string deviceId, string peerDeviceId, string displayName, string cardData);
 }
