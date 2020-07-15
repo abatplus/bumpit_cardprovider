@@ -40,14 +40,14 @@ RUN dotnet publish -c Release -o out ./BumpitCardExchangeService
 
 # install Java for sonarscanner end
 #RUN apt-get update && \
- # apt-get install -y default-jdk && \
+# apt-get install -y default-jdk && \
 #  apt-get clean;
 
 # end sonarscanner
 #RUN dotnet sonarscanner end \
 #  /d:sonar.login=${SONAR_TOKEN}
 
- 
+
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/core/aspnet:${DOTNETCORE_VERSION}
 

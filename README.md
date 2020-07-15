@@ -1,2 +1,2 @@
 # bumpit-card-provider
-.NET REST Service that provides data of visit-cards to bumpit application
+.NET REST Service that manages peer devices and their locations and handles exchange of business cards data
