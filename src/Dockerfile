@@ -7,7 +7,7 @@ ARG NUGET_USERNAME
 ARG NUGET_PASSWORD
 
 # Copy everything else and build
-COPY BumpitCardProvider/ ./BumpitCardProvider/
+COPY BumpitCardExchangeService/ ./BumpitCardExchangeService/
 
 # Set nuget.config
 COPY nuget.config.template ./nuget.config
@@ -30,18 +30,18 @@ RUN sed -i -e "s/REPLACE_USERNAME/$NUGET_USERNAME/g;s/REPLACE_PASSWORD/$NUGET_PA
 #  /d:sonar.login=${SONAR_TOKEN} \
 #  /d:sonar.cs.analyzer.projectOutPaths=out
 
-RUN dotnet publish -c Release -o out ./BumpitCardProvider
+RUN dotnet publish -c Release -o out ./BumpitCardExchangeService
 
 # install Java for sonarscanner end
 #RUN apt-get update && \
- # apt-get install -y default-jdk && \
+# apt-get install -y default-jdk && \
 #  apt-get clean;
 
 # end sonarscanner
 #RUN dotnet sonarscanner end \
 #  /d:sonar.login=${SONAR_TOKEN}
 
- 
+
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/core/aspnet:${DOTNETCORE_VERSION}
 
@@ -52,4 +52,4 @@ WORKDIR /app
 COPY --from=build-env /app/out .
 
 # RUN dotnet ef database update
-ENTRYPOINT ["dotnet", "BumpitCardProvider.dll"]
+ENTRYPOINT ["dotnet", "BumpitCardExchangeService.dll"]
