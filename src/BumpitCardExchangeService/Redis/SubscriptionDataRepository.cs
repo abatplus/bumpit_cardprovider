@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 
 namespace BumpitCardExchangeService.Redis
@@ -22,7 +21,7 @@ namespace BumpitCardExchangeService.Redis
                 return resList;
             }
 
-            var res = redisClient.GeoRadiusByMember(GetGeoEntryKey(), device).Result;
+            var res = redisClient.GeoRadiusByMember(device).Result;
             if (res != null)
             {
                 foreach (var el in res)
@@ -40,34 +39,16 @@ namespace BumpitCardExchangeService.Redis
             return resList;
         }
 
-        public async void SaveSubscriber(string deviceId, double longitude, double latitude, string subcriberDescription)
+        public async void SaveSubscriber(string deviceId, double longitude, double latitude, string displayName)
         {
-            await redisClient.SetString(deviceId, subcriberDescription);
-            await redisClient.GeoAdd(GetGeoEntryKey(), longitude, latitude, deviceId);
+            await redisClient.SetString(deviceId, displayName);
+            await redisClient.GeoAdd(longitude, latitude, deviceId);
         }
 
         public async void DeleteSubscriber(string deviceId)
         {
             await redisClient.RemoveKey(deviceId);
-            redisClient.GeoRemove(GetGeoEntryKey(), deviceId);
+            await redisClient.GeoRemove(deviceId);
         }
-
-        private string GetGeoEntryKey()
-        {
-            return "BumpitGeoEntryKey";
-        }
-
-        public async void UpdateGeolocation(string deviceId, double longitude, double latitude)
-        {
-            redisClient.GeoRemove(GetGeoEntryKey(), deviceId);
-            await redisClient.GeoAdd(GetGeoEntryKey(), longitude, latitude, deviceId);
-        }
-
-        public async void UpdateSubcriberDescription(string deviceId, string subcriberDescription)
-        {
-            await redisClient.SetString(deviceId, subcriberDescription);
-        }
-
-
     }
 }

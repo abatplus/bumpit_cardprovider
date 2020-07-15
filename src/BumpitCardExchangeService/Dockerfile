@@ -2,8 +2,12 @@
 
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-buster-slim AS base
 WORKDIR /app
-EXPOSE 80
-EXPOSE 443
+
+ENV REDIS_HOST="localhost"
+ENV REDIS_PORT="6379"
+
+ENV REDIS_GEORADIUS="5"
+ENV REDIS_KEY_EXPIRE_TIMEOUT="2"
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
