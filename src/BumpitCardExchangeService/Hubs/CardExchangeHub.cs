@@ -4,7 +4,7 @@ using BumpitCardExchangeService.Redis;
 
 namespace BumpitCardExchangeService
 {
-  public class CardExchangeHub : Hub<ICardExchangeClient>
+  public class CardExchangeHub : Hub<ICardExchangeClient>, ICardExchangeHub
   {
     private readonly ISubscriptionDataRepository _repository;
 
@@ -27,34 +27,13 @@ namespace BumpitCardExchangeService
       await Clients.Caller.Unsubscribed("Erfolgreich abgemeldet.");
     }
 
-    public async Task UpdateGeolocation(string deviceId, double longitude, double latitude)
+    public async Task Update(string deviceId, double longitude, double latitude, string displayName)
     {
       _repository.UpdateGeolocation(deviceId, longitude, latitude);
-
-      await Clients.Caller.GeolocationChanged(_repository.GetNearestSubscribers(deviceId));
-    }
-
-    public async Task UpdateDisplayName(string deviceId, string displayName)
-    {
       _repository.UpdateSubcriberDescription(deviceId, displayName);
 
-      await Clients.Caller.DisplayNameChanged("Ihre Anzeigedaten wurden erfolgreich geändert.");
+      await Clients.Caller.Updated(_repository.GetNearestSubscribers(deviceId));
     }
-
-    // Workflow:
-    // Client A (device)   Client B (peerDevice)      
-    // -----------------------------------
-    // Request (B)
-    //   ------------------->Requested (A)
-    //   ->Waiting (B)
-    //
-    //                         Accept (A)
-    // Accepted (B)<--------------------
-    //                  AcceptanceSent<-
-    //
-    // Send (B)
-    //   ------------------->Received (A)
-    //   -> Sent()
 
     public async Task RequestCardExchange(string deviceId, string peerDeviceId, string displayName)
     {
