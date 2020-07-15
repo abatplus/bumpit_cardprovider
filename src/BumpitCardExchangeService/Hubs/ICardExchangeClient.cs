@@ -16,12 +16,14 @@ namespace BumpitCardExchangeService
 
     Task CardExchangeRequested(string deviceId, string displayName);
 
-    Task WaitingForAcceptance(string peerDeviceId);
+    Task WaitingForAcceptance(string peerDeviceId, string displayName);
 
-    Task CardExchangeAccepted(string peerDeviceId);
+    Task CardExchangeAccepted(string peerDeviceId, string displayName);
+
+    Task AcceptanceSent(string deviceId, string displayName);
 
     Task CardDataReceived(string deviceId, string displayName, string cardData);
 
-    Task CardDataSent(string peerDeviceId);
+    Task CardDataSent(string peerDeviceId, string displayName);
   }
 }
