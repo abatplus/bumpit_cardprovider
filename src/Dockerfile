@@ -6,6 +6,12 @@ WORKDIR /app
 ARG NUGET_USERNAME
 ARG NUGET_PASSWORD
 
+ENV REDIS_HOST="localhost"
+ENV REDIS_PORT="6379"
+
+ENV REDIS_GEORADIUS="5"
+ENV REDIS_KEY_EXPIRE_TIMEOUT="2"
+
 # Copy everything else and build
 COPY BumpitCardExchangeService/ ./BumpitCardExchangeService/
 

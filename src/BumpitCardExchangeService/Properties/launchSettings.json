@@ -13,6 +13,7 @@
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
+        "PORT_TCP_API": "35041",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
