@@ -1,17 +1,8 @@
-﻿using Newtonsoft.Json;
-
-namespace BumpitCardExchangeService
+﻿namespace BumpitCardExchangeService
 {
-    public class SubscriptionData
-    {
-        [JsonProperty("device_id")]
-        [JsonRequired]
-        public string DeviceId
-        {
-            get; set;
-        }
-
-        //FirstName, LastName ...
-        public string AdditionalData { get; set; }
-    }
+  public class SubscriptionData : DeviceData
+  {
+    public double Latitude { get; set; }
+    public double Longitute { get; set; }
+  }
 }
