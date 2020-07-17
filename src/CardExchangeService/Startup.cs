@@ -1,5 +1,5 @@
-using BumpitCardExchangeService.Redis;
-using BumpitCardExchangeService.Tests;
+using CardExchangeService.Redis;
+using CardExchangeService.Tests;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;

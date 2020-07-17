@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
-using BumpitCardExchangeService.Redis;
+using CardExchangeService.Redis;
 
 namespace CardExchangeService
 {
