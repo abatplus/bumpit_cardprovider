@@ -10,7 +10,7 @@ resources:
       name: abatplus/smef-azure-pipeline-templates
 
 variables:
-  serviceName: "bumpit-card-exchange-service"
+  serviceName: "vswap-card-exchange-service"
 
 extends:
   template: docker/docker-build-and-push.yml@templates
