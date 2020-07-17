@@ -53,9 +53,9 @@ namespace BumpitCardExchangeService
 
         public async Task AcceptCardExchange(string deviceId, string peerDeviceId, string displayName, string cardData)
         {
-            await Clients.Group(peerDeviceId).CardExchangeAccepted(peerDeviceId, displayName, cardData);
+            await Clients.Group(peerDeviceId).CardExchangeAccepted(deviceId, displayName, cardData);
 
-            await Clients.Caller.AcceptanceSent(deviceId);
+            await Clients.Caller.AcceptanceSent(peerDeviceId);
         }
 
         public async Task SendCardData(string deviceId, string peerDeviceId, string displayName, string cardData)
