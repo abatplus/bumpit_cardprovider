@@ -1,4 +1,5 @@
 using BumpitCardExchangeService.Redis;
+using BumpitCardExchangeService.Tests;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -19,10 +20,10 @@ namespace BumpitCardExchangeService
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-      services.AddSingleton<IRedisClient, RedisClient>();
+      // services.AddSingleton<IRedisClient, RedisClient>();
       services.AddControllers();
       services.AddSignalR();
-      services.AddTransient<ISubscriptionDataRepository, SubscriptionDataRepository>();
+      services.AddTransient<ISubscriptionDataRepository, MockRepository>();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
