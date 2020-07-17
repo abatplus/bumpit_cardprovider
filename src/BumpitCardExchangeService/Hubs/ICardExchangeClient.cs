@@ -16,7 +16,7 @@ namespace BumpitCardExchangeService
     Task CardExchangeRequestRevoked (string deviceId);
     Task RevokeSent(string peerDeviceId);
 
-    Task CardExchangeAccepted(string peerDeviceId, string displayName, string cardData);
+    Task CardExchangeAccepted(string peerDeviceId, string peerDisplayName, string peerCardData);
     Task AcceptanceSent(string deviceId);
 
     Task CardDataReceived(string deviceId, string displayName, string cardData);

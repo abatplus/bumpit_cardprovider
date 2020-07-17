@@ -19,7 +19,7 @@
     },
     "BumpitCardExchangeService": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "launchBrowser": false,
       "launchUrl": "swaphub",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
@@ -30,6 +30,9 @@
       "commandName": "Docker",
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swaphub",
+      "environmentVariables": {
+        "PORT_TCP_API": "35041"
+      },
       "publishAllPorts": true,
       "useSSL": true
     }

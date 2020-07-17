@@ -23,6 +23,6 @@ public interface ICardExchangeHub
 
   Task RequestCardExchange(string deviceId, string peerDeviceId, string displayName);
   Task RevokeCardExchangeRequest(string deviceId, string peerDeviceId);
-  Task AcceptCardExchange(string deviceId, string peerDeviceId, string displayName, string cardData);
+  Task AcceptCardExchange(string deviceId, string peerDeviceId, string peerDisplayName, string peerCardData);
   Task SendCardData(string deviceId, string peerDeviceId, string displayName, string cardData);
 }
