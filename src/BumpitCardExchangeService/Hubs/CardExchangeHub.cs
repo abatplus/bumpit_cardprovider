@@ -15,6 +15,8 @@ namespace BumpitCardExchangeService
 
         public async Task Subscribe(string deviceId, double longitude, double latitude, string displayName)
         {
+            await Groups.AddToGroupAsync(Context.ConnectionId, deviceId);
+
             _repository.SaveSubscriber(deviceId, longitude, latitude, displayName);
 
             await Clients.Caller.Subscribed(_repository.GetNearestSubscribers(deviceId));
@@ -22,12 +24,13 @@ namespace BumpitCardExchangeService
 
         public async Task Unsubcribe(string deviceId)
         {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, deviceId);
+
             _repository.DeleteSubscriber(deviceId);
 
             await Clients.Caller.Unsubscribed("Erfolgreich abgemeldet.");
         }
 
-        //TODO: Subscribe and Update do equal things=> to make one method?
         public async Task Update(string deviceId, double longitude, double latitude, string displayName)
         {
             _repository.SaveSubscriber(deviceId, longitude, latitude, displayName);
@@ -37,26 +40,23 @@ namespace BumpitCardExchangeService
 
         public async Task RequestCardExchange(string deviceId, string peerDeviceId, string displayName)
         {
-            //TODO: send to deviceIdOfCardOnwer
-            await Clients.Client(peerDeviceId).CardExchangeRequested(deviceId, displayName);
+            await Clients.Group(peerDeviceId).CardExchangeRequested(deviceId, displayName);
 
-      //TODO: send to deviceIdCaller request confirmation
-      await Clients.Caller.WaitingForAcceptance(peerDeviceId);
-    }
+            await Clients.Caller.WaitingForAcceptance(peerDeviceId);
+        }
 
-    public async Task AcceptCardExchange(string deviceId, string peerDeviceId, string displayName, string cardData)
-    {
-      await Clients.Client(deviceId).CardExchangeAccepted(peerDeviceId, displayName, cardData);
+        public async Task AcceptCardExchange(string deviceId, string peerDeviceId, string displayName, string cardData)
+        {
+            await Clients.Group(peerDeviceId).CardExchangeAccepted(peerDeviceId, displayName, cardData);
 
-      await Clients.Caller.AcceptanceSent(deviceId);
-    }
+            await Clients.Caller.AcceptanceSent(deviceId);
+        }
 
         public async Task SendCardData(string deviceId, string peerDeviceId, string displayName, string cardData)
         {
-            //TODO: check that deviceIdRecipient was published data to deviceIdCaller
-            await Clients.Client(peerDeviceId).CardDataReceived(deviceId, displayName, cardData);
+            await Clients.Group(peerDeviceId).CardDataReceived(deviceId, displayName, cardData);
 
-      await Clients.Caller.CardDataSent(peerDeviceId);
+            await Clients.Caller.CardDataSent(peerDeviceId);
+        }
     }
-  }
 }
