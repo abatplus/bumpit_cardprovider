@@ -8,7 +8,6 @@ namespace BumpitCardExchangeService
   {
     public static void Main(string[] args)
     {
-      //CreateHostBuilder(args).Build().Run();
       var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
       CreateHostBuilder(args, configuration).Build().Run();
     }
