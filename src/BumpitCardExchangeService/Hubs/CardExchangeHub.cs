@@ -51,11 +51,11 @@ namespace BumpitCardExchangeService
             await Clients.Caller.RevokeSent(peerDeviceId);
         }
 
-        public async Task AcceptCardExchange(string deviceId, string peerDeviceId, string displayName, string cardData)
+        public async Task AcceptCardExchange(string deviceId, string peerDeviceId, string peerDisplayName, string peerCardData)
         {
-            await Clients.Group(peerDeviceId).CardExchangeAccepted(deviceId, displayName, cardData);
+            await Clients.Group(deviceId).CardExchangeAccepted(peerDeviceId, peerDisplayName, peerCardData);
 
-            await Clients.Caller.AcceptanceSent(peerDeviceId);
+            await Clients.Caller.AcceptanceSent(deviceId);
         }
 
         public async Task SendCardData(string deviceId, string peerDeviceId, string displayName, string cardData)
