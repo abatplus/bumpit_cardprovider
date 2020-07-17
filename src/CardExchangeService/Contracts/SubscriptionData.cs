@@ -1,4 +1,4 @@
-﻿namespace BumpitCardExchangeService
+﻿namespace CardExchangeService
 {
   public class SubscriptionData : DeviceData
   {

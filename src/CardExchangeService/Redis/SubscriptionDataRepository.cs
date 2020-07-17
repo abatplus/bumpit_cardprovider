@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace BumpitCardExchangeService.Redis
+namespace CardExchangeService.Redis
 {
   public class SubscriptionDataRepository : ISubscriptionDataRepository
   {

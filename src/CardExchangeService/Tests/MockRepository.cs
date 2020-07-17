@@ -4,7 +4,7 @@ using System.Linq;
 using BumpitCardExchangeService.Redis;
 using Newtonsoft.Json;
 
-namespace BumpitCardExchangeService.Tests
+namespace CardExchangeService.Tests
 {
   public class MockRepositoryTest
   {
