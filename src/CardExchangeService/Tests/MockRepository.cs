@@ -31,7 +31,16 @@ namespace CardExchangeService.Tests
   }
   public class MockRepository : ISubscriptionDataRepository
   {
-    private List<SubscriptionData> subscribers = new List<SubscriptionData>();
+    private static List<SubscriptionData> subscribers = new List<SubscriptionData>();
+
+    private void PrintList(IList<string> list)
+    {
+      Console.WriteLine("List | {0} Items", list.Count());
+      foreach (var item in list)
+      {
+        Console.WriteLine(item);
+      }
+    }
 
     public IList<string> GetNearestSubscribers(string deviceId)
     {
