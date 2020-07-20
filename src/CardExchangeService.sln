@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30225.117
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BumpitCardExchangeService", "BumpitCardExchangeService\BumpitCardExchangeService.csproj", "{9809AE86-CD51-44F6-8DF5-DF4CCE3E46B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CardExchangeService", "CardExchangeService\CardExchangeService.csproj", "{9809AE86-CD51-44F6-8DF5-DF4CCE3E46B2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

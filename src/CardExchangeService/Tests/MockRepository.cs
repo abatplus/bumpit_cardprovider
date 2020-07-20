@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BumpitCardExchangeService.Redis;
+using CardExchangeService.Redis;
 using Newtonsoft.Json;
 
-namespace BumpitCardExchangeService.Tests
+namespace CardExchangeService.Tests
 {
   public class MockRepositoryTest
   {

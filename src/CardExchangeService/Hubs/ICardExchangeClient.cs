@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace BumpitCardExchangeService
+namespace CardExchangeService
 {
   public interface ICardExchangeClient
   {
@@ -13,7 +13,7 @@ namespace BumpitCardExchangeService
     Task CardExchangeRequested(string deviceId, string displayName);
     Task WaitingForAcceptance(string peerDeviceId);
 
-    Task CardExchangeRequestRevoked (string deviceId);
+    Task CardExchangeRequestRevoked(string deviceId);
     Task RevokeSent(string peerDeviceId);
 
     Task CardExchangeAccepted(string peerDeviceId, string peerDisplayName, string peerCardData);
