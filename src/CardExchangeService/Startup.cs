@@ -34,14 +34,7 @@ namespace CardExchangeService
         app.UseDeveloperExceptionPage();
       }
 
-      app.UseCors(builder =>
-      {
-        builder
-                  .WithOrigins(Configuration["ConnectionInfo:AllowedCoreOrigins:0"])//TODO: make as environment
-                  .AllowAnyMethod()
-                  .AllowAnyHeader()
-              .AllowCredentials();
-      });
+      app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().SetIsOriginAllowed(_ => true).AllowCredentials());
 
       app.UseRouting();
 
