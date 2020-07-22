@@ -1,54 +1,63 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CardExchangeService.Redis
 {
-  public class SubscriptionDataRepository : ISubscriptionDataRepository
-  {
-    private readonly IRedisClient redisClient;
-
-    public SubscriptionDataRepository(IRedisClient redisClient)
+    public class SubscriptionDataRepository : ISubscriptionDataRepository
     {
-      this.redisClient = redisClient;
-    }
+        private readonly IRedisClient redisClient;
 
-    public IList<string> GetNearestSubscribers(string deviceId)
-    {
-      List<string> resList = new List<string>();
-
-      if (string.IsNullOrWhiteSpace(deviceId))
-      {
-        return resList;
-      }
-
-      var res = redisClient.GeoRadiusByMember(deviceId).Result;
-      if (res != null)
-      {
-        foreach (var el in res)
+        public SubscriptionDataRepository(IRedisClient redisClient)
         {
-          if (el.Member != deviceId)
-          {
-            string subscData = redisClient.GetString(el.Member).Result;
-            resList.Add(JsonConvert.SerializeObject(
-                new SubscriptionData() { DeviceId = el.Member, DisplayName = subscData }
-            ));
-          }
+            this.redisClient = redisClient;
         }
-      }
 
-      return resList;
-    }
+        public async Task<IList<string>> GetNearestSubscribers(string deviceId)
+        {
+            List<string> resList = new List<string>();
 
-    public async void SaveSubscriber(string deviceId, double longitude, double latitude, string displayName)
-    {
-      await redisClient.SetString(deviceId, displayName);
-      await redisClient.GeoAdd(longitude, latitude, deviceId);
-    }
+            if (string.IsNullOrWhiteSpace(deviceId))
+            {
+                return resList;
+            }
 
-    public async void DeleteSubscriber(string deviceId)
-    {
-      await redisClient.RemoveKey(deviceId);
-      await redisClient.GeoRemove(deviceId);
+            try
+            {
+                var res = await redisClient.GeoRadiusByMember(deviceId);
+                if (res != null)
+                {
+                    foreach (var el in res)
+                    {
+                        if (el.Member != deviceId)
+                        {
+                            string subscData = redisClient.GetString(el.Member).Result;
+                            resList.Add(JsonConvert.SerializeObject(
+                                new SubscriptionData() { DeviceId = el.Member, DisplayName = subscData }
+                            ));
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                //TODO Log error 
+            }
+
+            return resList;
+        }
+
+        public async Task<bool> SaveSubscriber(string deviceId, double longitude, double latitude, string displayName)
+        {
+            return await await redisClient.SetString(deviceId, displayName).ContinueWith(
+               x => redisClient.GeoAdd(longitude, latitude, deviceId));
+        }
+
+        public async Task<bool> DeleteSubscriber(string deviceId)
+        {
+            return await await redisClient.RemoveKey(deviceId).ContinueWith(
+                x => redisClient.GeoRemove(deviceId));
+        }
     }
-  }
 }
