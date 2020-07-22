@@ -32,7 +32,7 @@ namespace CardExchangeService.Redis
                     {
                         if (el.Member != deviceId)
                         {
-                            string subscData = redisClient.GetString(el.Member).Result;
+                            string subscData = await redisClient.GetString(el.Member);
                             resList.Add(JsonConvert.SerializeObject(
                                 new SubscriptionData() { DeviceId = el.Member, DisplayName = subscData }
                             ));
