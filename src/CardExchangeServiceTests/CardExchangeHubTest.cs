@@ -32,6 +32,7 @@ namespace CardExchangeServiceTests
         //private readonly Mock<IElasticClient> elasticClientMock;
         private readonly Mock<IConfiguration> configurationMock;
         private ICardExchangeHub cardExchangeHub;
+        private MockCardExchangeClient cardExchangeClient;
         private readonly Mock<ISubscriptionDataRepository> repository;
 
         private Mock<IHubCallerClients<ICardExchangeClient>> mockClients;
@@ -54,7 +55,8 @@ namespace CardExchangeServiceTests
             mockClients = new Mock<IHubCallerClients<ICardExchangeClient>>();
             mockGroups = new Mock<IGroupManager>();
             mockContext = new Mock<HubCallerContext>();
-
+            cardExchangeClient = new MockCardExchangeClient();
+            mockClients.Setup(x => x.Caller).Returns(cardExchangeClient);
 
             _redisClient = new RedisClient(configurationMock.Object);
             _repository = new SubscriptionDataRepository(_redisClient);
@@ -67,17 +69,13 @@ namespace CardExchangeServiceTests
         }
 
         [Fact]
-        public async void CardExchangeHubTest_Subscribe_SunscribedCalled()
+        public async void CardExchangeHubTest_Subscribe_SubscribedCalled()
         {
             var connection = new HubConnectionBuilder()
                 .WithUrl("http://localhost:5000/swaphub")
                 .Build();
 
             mockContext.Setup(x => x.ConnectionId).Returns(ConnectionId1);
-
-
-            var caller = new MockCardExchangeClient();
-            mockClients.Setup(x => x.Caller).Returns(caller);
 
             await connection.StartAsync().ContinueWith(x =>
            {
@@ -89,70 +87,55 @@ namespace CardExchangeServiceTests
 
             await Task.Delay(2000);
 
-            caller.Peers.Should().NotBeNull();
+            cardExchangeClient.Peers.Should().NotBeNull();
         }
 
 
         [Fact]
-        public async void CardExchangeHubTest_TwoSubscribers_SunscribedCalled()
+        public async void CardExchangeHubTest_TwoSubscribers_SubscribedCalled()
         {
             var connection = new HubConnectionBuilder()
                 .WithUrl("http://localhost:5000/swaphub")
                 .Build();
 
-            mockContext.Setup(x => x.ConnectionId).Returns(ConnectionId1);
+            CardExchangeHub hub1, hub2;
+            MockCardExchangeClient client1, client2;
 
-            var caller = new MockCardExchangeClient();
-            mockClients.Setup(x => x.Caller).Returns(caller);
+            SubscribeOneClient(ConnectionId1, out hub1, out client1);
+            SubscribeOneClient(ConnectionId2, out hub2, out client2);
 
             await connection.StartAsync().ContinueWith(x =>
             {
                 if (connection.State == HubConnectionState.Connected)
                 {
-                    cardExchangeHub.Subscribe(deviceId1, longitude, latitude1, "displayName1");
+                    hub1.Subscribe(deviceId1, longitude, latitude1, "displayName1");
+                    hub2.Subscribe(deviceId2, longitude, latitudeIn2, "displayName2");
                 }
             });
 
             await Task.Delay(2000);
 
-            caller.Peers.Should().NotBeNull();
+            client1.Peers.Should().NotBeNull();
+            client2.Peers.Should().NotBeNull();
         }
 
-        //[Fact]
-        //public async void CardExchangeHubTest_Subscribe()
-        //{
-        //    var connection = new HubConnectionBuilder()
-        //        .WithUrl("http://localhost:5000/swaphub")
-        //        .Build();
+        private void SubscribeOneClient(string ConnectionId, out CardExchangeHub cardExchangeHub, out MockCardExchangeClient cardExchangeClient)
+        {
+            var mockClients = new Mock<IHubCallerClients<ICardExchangeClient>>();
+            var mockGroups = new Mock<IGroupManager>();
+            var mockContext = new Mock<HubCallerContext>();
+            cardExchangeClient = new MockCardExchangeClient();
+            mockClients.Setup(x => x.Caller).Returns(cardExchangeClient);
 
-        //    repository.Setup(x => x.GetNearestSubscribers("device1")).ReturnsAsync(new List<string>()
-        //    {
-        //        JsonConvert.SerializeObject(
-        //            new SubscriptionData() {DeviceId = "Device2", DisplayName = "DisplayName2"}),
-        //            JsonConvert.SerializeObject(
-        //                new SubscriptionData() {DeviceId = "Device3", DisplayName = "DisplayName3"})
-        //    });
-        //    // "81sQRSCbfEidBxsIO9bnyQ";
-        //    mockContext.Setup(x => x.ConnectionId).Returns("81sQRSCbfEidBxsIO9bnyQ");
+            cardExchangeHub = new CardExchangeHub(_repository);
+            cardExchangeHub.Clients = mockClients.Object;
+            cardExchangeHub.Groups = mockGroups.Object;
+            cardExchangeHub.Context = mockContext.Object;
 
-        //    //TODO: mock caller
-        //    dynamic caller = new ExpandoObject();
-        //    mockClients.Setup(x => x.Caller).Returns(caller);
+            mockContext.Setup(x => x.ConnectionId).Returns(ConnectionId);
 
-        //    bool isSubscribedCalled = false;
-        //    IEnumerable<string> resPeers = new List<string>();
-        //    connection.On(nameof(ICardExchangeClient.Subscribed), (IEnumerable<string> peers) =>
-        //    {
-        //        isSubscribedCalled = true;
-        //        resPeers = peers;
-        //    });
-
-        //    await connection.StartAsync();
-        //    await cardExchangeHub.Subscribe("device1", 1, 2, "displayName1");
-
-        //    isSubscribedCalled.Should().BeTrue();
-
-
-        //}
+            var caller = new MockCardExchangeClient();
+            mockClients.Setup(x => x.Caller).Returns(caller);
+        }
     }
 }
