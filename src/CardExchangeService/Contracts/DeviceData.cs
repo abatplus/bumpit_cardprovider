@@ -4,10 +4,12 @@ namespace CardExchangeService
 {
   public class DeviceData
   {
-    [JsonProperty("device_id")]
+    [JsonProperty("deviceId")]
     [JsonRequired]
     public string DeviceId { get; set; }
 
+    [JsonProperty("displayName")]
+    [JsonRequired]
     public string DisplayName { get; set; }
   }
 }
