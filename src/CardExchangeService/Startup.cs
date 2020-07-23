@@ -20,10 +20,10 @@ namespace CardExchangeService
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-      // services.AddSingleton<IRedisClient, RedisClient>();
+      services.AddSingleton<IRedisClient, RedisClient>();
       services.AddControllers();
       services.AddSignalR();
-      services.AddTransient<ISubscriptionDataRepository, MockRepository>();
+      services.AddTransient<ISubscriptionDataRepository, SubscriptionDataRepository>();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
