@@ -18,6 +18,9 @@ namespace CardExchangeServiceTests
         private const double latitudeIn2 = 12.466561156;
         private const double longitude = -34.405804850;
 
+        private const string connectionUrl = "https://vswap-dev.smef.io/swaphub";
+        //private const string connectionUrl = "http://localhost:5000/swaphub";
+
         public CardExchangeHubTest()
         {
         }
@@ -26,10 +29,10 @@ namespace CardExchangeServiceTests
         public async void ConnectionTest_SubscribeUpdate2Subscribers_SubscribedCalled()
         {
             var connection1 = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5000/swaphub")
+                .WithUrl(connectionUrl)
                 .Build();
             var connection2 = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5000/swaphub")
+                .WithUrl(connectionUrl)
                 .Build();
 
             bool isSubscribedCalled1 = false;
@@ -111,7 +114,7 @@ namespace CardExchangeServiceTests
         public async void ConnectionTest_Subscribe_SubscribedCalled()
         {
             var connection = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5000/swaphub")
+                .WithUrl(connectionUrl)
                 .Build();
 
             bool isSubscribedCalled = false;
@@ -141,7 +144,7 @@ namespace CardExchangeServiceTests
         public async void ConnectionTest_UnSubscribe_UnSubscribedCalled()
         {
             var connection = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5000/swaphub")
+                .WithUrl(connectionUrl)
                 .Build();
 
             bool isSubscribedCalled = false;
@@ -186,10 +189,10 @@ namespace CardExchangeServiceTests
         public async void ConnectionTest_Subscribe2Subscribers_ManyUpdates_NoFallOuts()
         {
             var connection1 = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5000/swaphub")
+                .WithUrl(connectionUrl)
                 .Build();
             var connection2 = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5000/swaphub")
+                .WithUrl(connectionUrl)
                 .Build();
 
             bool isSubscribedCalled1 = false;
@@ -284,10 +287,10 @@ namespace CardExchangeServiceTests
         {
             //Connection
             var connection1 = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5000/swaphub")
+                .WithUrl(connectionUrl)
                 .Build();
             var connection2 = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5000/swaphub")
+                .WithUrl(connectionUrl)
                 .Build();
 
             await connection1.StartAsync().ContinueWith(x =>
@@ -448,10 +451,10 @@ namespace CardExchangeServiceTests
         {
             //Connection
             var connection1 = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5000/swaphub")
+                .WithUrl(connectionUrl)
                 .Build();
             var connection2 = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5000/swaphub")
+                .WithUrl(connectionUrl)
                 .Build();
 
             await connection1.StartAsync().ContinueWith(x =>
