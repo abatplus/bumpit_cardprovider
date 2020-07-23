@@ -1,10 +1,5 @@
-using Microsoft.Extensions.Configuration;
-using Moq;
 using System;
-using System.Dynamic;
 using CardExchangeService;
-using CardExchangeService.Redis;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Xunit;
 using System.Collections.Generic;
@@ -19,9 +14,7 @@ namespace CardExchangeServiceTests
     {
         private const string deviceId1 = "d77b8214 - f7de - 4405 - abda - e87cfa05abac";
         private const string deviceId2 = "d77b8214 - f7de - 4405 - abda - e87cfa05abaa";
-        private const string deviceId3 = "d77b8214 - f7de - 4405 - abda - e87cfa05abab";
         private const double latitude1 = 12.466561146;
-        private const double latitudeNotIn2 = 12.496562656;
         private const double latitudeIn2 = 12.466561156;
         private const double longitude = -34.405804850;
 
@@ -143,7 +136,7 @@ namespace CardExchangeServiceTests
             resPeers.Should().NotBeNull();
             resPeers.Count().Should().Be(0);
         }
-        
+
         [Fact]
         public async void ConnectionTest_UnSubscribe_UnSubscribedCalled()
         {
@@ -188,7 +181,7 @@ namespace CardExchangeServiceTests
             isUnSubscribedCalled.Should().BeTrue();
             statusMessageUnSubscribed.Should().NotBeNullOrWhiteSpace();
         }
-        
+
         [Fact]
         public async void ConnectionTest_Subscribe2Subscribers_ManyUpdates_NoFallOuts()
         {
@@ -203,7 +196,7 @@ namespace CardExchangeServiceTests
             IEnumerable<string> resPeers1 = new List<string>();
             connection1.On(nameof(ICardExchangeClient.Subscribed), (IEnumerable<string> peers) =>
             {
-                   isSubscribedCalled1 = true;
+                isSubscribedCalled1 = true;
                 resPeers1 = peers;
             });
             bool isUpdatedCalled1 = false;
@@ -285,7 +278,7 @@ namespace CardExchangeServiceTests
             data2.DeviceId.Should().Be(deviceId1);
             data2.DisplayName.Should().Be("displayName1");
         }
-        
+
         [Fact]
         public async void ConnectionTest_Swap2Subscribers_SubscribedCalled()
         {
@@ -331,7 +324,7 @@ namespace CardExchangeServiceTests
             {
                 waitingForAcceptanceFromDeviceCon1 = peerDeviceId;
             });
-            
+
 
             string cardExchangeAcceptedPeerDeviceId1 = string.Empty;
             string cardExchangeAcceptedPeerDisplayName1 = string.Empty;
@@ -448,6 +441,103 @@ namespace CardExchangeServiceTests
             cardDataReceivedDisplayName2.Should().Be("displayName1");
             cardDataReceivedCardData2.Should().Be("cardData1");
             cardDataSentDeviceCon2.Should().Be(deviceId1);
+        }
+
+        [Fact]
+        public async void ConnectionTest_Swap2Subscribers_RevokeCardExchangeRequest_SubscribedCalled()
+        {
+            //Connection
+            var connection1 = new HubConnectionBuilder()
+                .WithUrl("http://localhost:5000/swaphub")
+                .Build();
+            var connection2 = new HubConnectionBuilder()
+                .WithUrl("http://localhost:5000/swaphub")
+                .Build();
+
+            await connection1.StartAsync().ContinueWith(x =>
+            {
+                if (connection1.State == HubConnectionState.Connected)
+                {
+                    connection1.SendAsync("Subscribe", deviceId1, longitude, latitude1, "displayName1");
+                }
+            });
+
+            await connection2.StartAsync().ContinueWith(x =>
+            {
+                if (connection2.State == HubConnectionState.Connected)
+                {
+                    connection2.SendAsync("Subscribe", deviceId2, longitude, latitudeIn2, "displayName2");
+
+                }
+            });
+
+
+            // Events to handle
+            //Connection 1
+            string deviceIdReqCon1 = string.Empty;
+            string displayNameCon1 = string.Empty;
+            connection1.On(nameof(ICardExchangeClient.CardExchangeRequested), (string deviceId, string displayName) =>
+            {
+                deviceIdReqCon1 = deviceId;
+                displayNameCon1 = displayName;
+
+                connection1.SendAsync("AcceptCardExchange", deviceId, deviceId1, "displayName1", "cardData1");
+            });
+
+            string cardExchangeAcceptedPeerDeviceId1 = string.Empty;
+            string cardExchangeAcceptedPeerDisplayName1 = string.Empty;
+            string cardExchangeAcceptedPeerCardData1 = string.Empty;
+            connection1.On(nameof(ICardExchangeClient.CardExchangeAccepted), (string peerDeviceId, string peerDisplayName, string peerCardData) =>
+            {
+                cardExchangeAcceptedPeerDeviceId1 = peerDeviceId;
+                cardExchangeAcceptedPeerDisplayName1 = peerDisplayName;
+                cardExchangeAcceptedPeerCardData1 = peerCardData;
+            });
+            string cardExchangeRequestRevokedDeviceId1 = string.Empty;
+            connection1.On(nameof(ICardExchangeClient.CardExchangeRequestRevoked), (string deviceId) =>
+            {
+                cardExchangeRequestRevokedDeviceId1 = deviceId;
+            });
+
+
+            //Connection 2
+            string deviceIdReqCon2 = string.Empty;
+            string displayNameCon2 = string.Empty;
+            connection2.On(nameof(ICardExchangeClient.CardExchangeRequested), (string deviceId, string displayName) =>
+            {
+                deviceIdReqCon2 = deviceId;
+                displayNameCon2 = displayName;
+
+                connection2.SendAsync("RevokeCardExchangeRequest", deviceId2, deviceId);
+            });
+            string revokeSentDeviceCon2 = string.Empty;
+            connection2.On(nameof(ICardExchangeClient.RevokeSent), (string deviceId) =>
+            {
+                revokeSentDeviceCon2 = deviceId;
+            });
+
+            // Actions
+            await connection1.SendAsync("Update", deviceId1, longitude, latitude1, "displayName1");
+            await connection2.SendAsync("Update", deviceId2, longitude, latitudeIn2, "displayName2");
+
+            await connection1.SendAsync("RequestCardExchange", deviceId1, deviceId2, "displayName1");
+            await connection2.SendAsync("RequestCardExchange", deviceId2, deviceId1, "displayName2");
+
+            await Task.Delay(2000);
+
+            //Asserts
+            deviceIdReqCon1.Should().Be(deviceId2);
+            displayNameCon1.Should().Be("displayName2");
+            deviceIdReqCon2.Should().Be(deviceId1);
+            displayNameCon2.Should().Be("displayName1");
+
+            //should not be called
+            cardExchangeAcceptedPeerDeviceId1.Should().Be(String.Empty);
+            cardExchangeAcceptedPeerDisplayName1.Should().Be(String.Empty);
+            cardExchangeAcceptedPeerCardData1.Should().Be(String.Empty);
+
+            cardExchangeRequestRevokedDeviceId1.Should().Be(deviceId2);
+            revokeSentDeviceCon2.Should().Be(deviceId1);
         }
     }
 }
