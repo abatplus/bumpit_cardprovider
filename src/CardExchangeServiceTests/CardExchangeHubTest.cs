@@ -285,6 +285,138 @@ namespace CardExchangeServiceTests
             data2.DeviceId.Should().Be(deviceId1);
             data2.DisplayName.Should().Be("displayName1");
         }
+        
+        [Fact]
+        public async void ConnectionTest_Swap2Subscribers_SubscribedCalled()
+        {
+            //Connection
+            var connection1 = new HubConnectionBuilder()
+                .WithUrl("http://localhost:5000/swaphub")
+                .Build();
+            var connection2 = new HubConnectionBuilder()
+                .WithUrl("http://localhost:5000/swaphub")
+                .Build();
 
+            await connection1.StartAsync().ContinueWith(x =>
+            {
+                if (connection1.State == HubConnectionState.Connected)
+                {
+                    connection1.SendAsync("Subscribe", deviceId1, longitude, latitude1, "displayName1");
+                }
+            });
+
+            await connection2.StartAsync().ContinueWith(x =>
+            {
+                if (connection2.State == HubConnectionState.Connected)
+                {
+                    connection2.SendAsync("Subscribe", deviceId2, longitude, latitudeIn2, "displayName2");
+
+                }
+            });
+
+
+            // Events to handle
+            //Connection 1
+            string deviceIdReqCon1 = string.Empty;
+            string displayNameCon1 = string.Empty;
+            connection1.On(nameof(ICardExchangeClient.CardExchangeRequested), (string deviceId, string displayName) =>
+            {
+                deviceIdReqCon1 = deviceId;
+                displayNameCon1 = displayName;
+
+                connection1.SendAsync("AcceptCardExchange", deviceId, deviceId1, "displayName1", "cardData1");
+            });
+            string waitingForAcceptanceFromDeviceCon1 = string.Empty;
+            connection1.On(nameof(ICardExchangeClient.WaitingForAcceptance), (string peerDeviceId) =>
+            {
+                waitingForAcceptanceFromDeviceCon1 = peerDeviceId;
+            });
+
+
+
+
+
+            string cardExchangeAcceptedPeerDeviceId1 = string.Empty;
+            string cardExchangeAcceptedPeerDisplayName1 = string.Empty;
+            string cardExchangeAcceptedPeerCardData1 = string.Empty;
+            connection1.On(nameof(ICardExchangeClient.CardExchangeAccepted), (string peerDeviceId, string peerDisplayName, string peerCardData) =>
+            {
+                cardExchangeAcceptedPeerDeviceId1 = peerDeviceId;
+                cardExchangeAcceptedPeerDisplayName1 = peerDisplayName;
+                cardExchangeAcceptedPeerCardData1 = peerCardData;
+
+                connection1.SendAsync("SendCardData", deviceId1, peerDeviceId, "displayName1", "cardData1");
+            });
+            string acceptanceSentDeviceCon1 = string.Empty;
+            connection1.On(nameof(ICardExchangeClient.AcceptanceSent), (string deviceId) =>
+            {
+                acceptanceSentDeviceCon1 = deviceId;
+            });
+
+
+
+
+
+            //Connection 2
+            string deviceIdReqCon2 = string.Empty;
+            string displayNameCon2 = string.Empty;
+            connection2.On(nameof(ICardExchangeClient.CardExchangeRequested), (string deviceId, string displayName) =>
+            {
+                deviceIdReqCon2 = deviceId;
+                displayNameCon2 = displayName;
+
+                connection1.SendAsync("AcceptCardExchange", deviceId, deviceId2, "displayName2", "cardData2");
+            });
+            string waitingForAcceptanceFromDeviceCon2 = string.Empty;
+            connection2.On(nameof(ICardExchangeClient.WaitingForAcceptance), (string peerDeviceId) =>
+            {
+                waitingForAcceptanceFromDeviceCon2 = peerDeviceId;
+            });
+
+            string cardExchangeAcceptedPeerDeviceId2 = string.Empty;
+            string cardExchangeAcceptedPeerDisplayName2 = string.Empty;
+            string cardExchangeAcceptedPeerCardData2 = string.Empty;
+            connection2.On(nameof(ICardExchangeClient.CardExchangeAccepted), (string peerDeviceId, string peerDisplayName, string peerCardData) =>
+            {
+                cardExchangeAcceptedPeerDeviceId2 = peerDeviceId;
+                cardExchangeAcceptedPeerDisplayName2 = peerDisplayName;
+                cardExchangeAcceptedPeerCardData2 = peerCardData;
+
+                connection2.SendAsync("SendCardData", deviceId2, peerDeviceId, "displayName2", "cardData2");
+            });
+            string acceptanceSentDeviceCon2 = string.Empty;
+            connection2.On(nameof(ICardExchangeClient.AcceptanceSent), (string deviceId) =>
+            {
+                acceptanceSentDeviceCon2 = deviceId;
+            });
+
+
+            // Actions
+            await connection1.SendAsync("Update", deviceId1, longitude, latitude1, "displayName1");
+            await connection2.SendAsync("Update", deviceId2, longitude, latitudeIn2, "displayName2");
+
+            await connection1.SendAsync("RequestCardExchange", deviceId1, deviceId2, "displayName1");
+            await connection2.SendAsync("RequestCardExchange", deviceId2, deviceId1, "displayName2");
+
+            await Task.Delay(5000);
+
+            //Asserts
+            deviceIdReqCon1.Should().Be(deviceId2);
+            displayNameCon1.Should().Be("displayName2");
+            deviceIdReqCon2.Should().Be(deviceId1);
+            displayNameCon2.Should().Be("displayName1");
+            waitingForAcceptanceFromDeviceCon1.Should().Be(deviceId2);
+            waitingForAcceptanceFromDeviceCon2.Should().Be(deviceId1);
+
+
+            cardExchangeAcceptedPeerDeviceId1.Should().Be(deviceId2);
+            cardExchangeAcceptedPeerDisplayName1.Should().Be("displayName2");
+            cardExchangeAcceptedPeerCardData1.Should().Be("cardData2");
+            acceptanceSentDeviceCon1.Should().Be(deviceId2);
+            cardExchangeAcceptedPeerDeviceId2.Should().Be(deviceId1);
+            cardExchangeAcceptedPeerDisplayName2.Should().Be("displayName1");
+            cardExchangeAcceptedPeerCardData2.Should().Be("cardData1");
+            acceptanceSentDeviceCon2.Should().Be(deviceId1);
+        }
     }
 }
