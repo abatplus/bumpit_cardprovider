@@ -44,8 +44,8 @@ namespace CardExchangeServiceTests
 
             await Task.Delay(2000);
 
-            await _repository.SaveSubscriber(deviceId1, longitude, latitude1, "displayName1")
-                .ContinueWith(x => _repository.SaveSubscriber(deviceId2, longitude, latitudeIn2, "displayName2"));
+            await _repository.SaveSubscriber(deviceId1, longitude, latitude1, "displayName1", null)
+                .ContinueWith(x => _repository.SaveSubscriber(deviceId2, longitude, latitudeIn2, "displayName2", null));
 
             var list = await _repository.GetNearestSubscribers(deviceId1);
 
@@ -68,8 +68,8 @@ namespace CardExchangeServiceTests
 
             await Task.Delay(2000);
 
-            await _repository.SaveSubscriber(deviceId1, longitude, latitude1, "displayName1")
-                .ContinueWith(x => _repository.SaveSubscriber(deviceId2, longitude, latitudeIn2, "displayName2"));
+            await _repository.SaveSubscriber(deviceId1, longitude, latitude1, "displayName1", null)
+                .ContinueWith(x => _repository.SaveSubscriber(deviceId2, longitude, latitudeIn2, "displayName2", null));
 
             var list = await _repository.GetNearestSubscribers(deviceId1);
 
@@ -96,8 +96,8 @@ namespace CardExchangeServiceTests
         {
             await _repository.DeleteSubscriber(deviceId1).ContinueWith(x => _repository.DeleteSubscriber(deviceId2))
                 .ContinueWith(x => _repository.DeleteSubscriber(deviceId3))
-                .ContinueWith(x => _repository.SaveSubscriber(deviceId1, longitude, latitude1, "displayName1"))
-                .ContinueWith(x => _repository.SaveSubscriber(deviceId2, longitude, latitudeNotIn2, "displayName2"));
+                .ContinueWith(x => _repository.SaveSubscriber(deviceId1, longitude, latitude1, "displayName1", null))
+                .ContinueWith(x => _repository.SaveSubscriber(deviceId2, longitude, latitudeNotIn2, "displayName2", null));
 
             var list = await _repository.GetNearestSubscribers(deviceId1);
 
@@ -113,9 +113,9 @@ namespace CardExchangeServiceTests
 
             await Task.Delay(2000);
 
-            await _repository.SaveSubscriber(deviceId1, longitude, latitude1, "displayName1")
-                .ContinueWith(x => _repository.SaveSubscriber(deviceId2, longitude, latitudeNotIn2, "displayName2"))
-                .ContinueWith(x => _repository.SaveSubscriber(deviceId3, longitude, latitudeIn2, "displayName3"));
+            await _repository.SaveSubscriber(deviceId1, longitude, latitude1, "displayName1", null)
+                .ContinueWith(x => _repository.SaveSubscriber(deviceId2, longitude, latitudeNotIn2, "displayName2", null))
+                .ContinueWith(x => _repository.SaveSubscriber(deviceId3, longitude, latitudeIn2, "displayName3", null));
 
             var list = await _repository.GetNearestSubscribers(deviceId1);
 

@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 
 public interface ICardExchangeHub
 {
-    Task Subscribe(string deviceId, double longitude, double latitude, string displayName);
+    Task Subscribe(string deviceId, double longitude, double latitude, string displayName, string image);
     Task Unsubscribe(string deviceId);
     Task Update(string deviceId, double longitude, double latitude, string displayName);
 

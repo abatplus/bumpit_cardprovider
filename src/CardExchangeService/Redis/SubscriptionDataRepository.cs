@@ -48,8 +48,9 @@ namespace CardExchangeService.Redis
             return resList;
         }
 
-        public async Task<bool> SaveSubscriber(string deviceId, double longitude, double latitude, string displayName)
+        public async Task<bool> SaveSubscriber(string deviceId, double longitude, double latitude, string displayName, string image)
         {
+            //TODO save image wenn not empty
             return await await redisClient.SetString(deviceId, displayName).ContinueWith(
                x => redisClient.GeoAdd(longitude, latitude, deviceId));
         }
