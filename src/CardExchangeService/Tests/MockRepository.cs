@@ -12,10 +12,10 @@ namespace CardExchangeService.Tests
         public MockRepositoryTest()
         {
             var repo = new MockRepository();
-            repo.SaveSubscriber("123", 0, 0, "Optimus");
-            repo.SaveSubscriber("1001", 0, 0, "Bumblebee");
+            repo.SaveSubscriber("123", 0, 0, "Optimus", null);
+            repo.SaveSubscriber("1001", 0, 0, "Bumblebee", null);
             PrintList(repo.GetNearestSubscribers("1001").Result);
-            repo.SaveSubscriber("9000", 0, 0, "Wheeljack");
+            repo.SaveSubscriber("9000", 0, 0, "Wheeljack", null);
             PrintList(repo.GetNearestSubscribers("1001").Result);
             repo.DeleteSubscriber("1001");
             PrintList(repo.GetNearestSubscribers("123").Result);
@@ -50,7 +50,7 @@ namespace CardExchangeService.Tests
                 .ToList();
         }
 
-        public async Task<bool> SaveSubscriber(string deviceId, double longitude, double latitude, string displayName)
+        public async Task<bool> SaveSubscriber(string deviceId, double longitude, double latitude, string displayName, string image)
         {
             var subscriber = subscribers.FirstOrDefault(s => s.DeviceId == deviceId);
             if (subscriber == null)

@@ -16,7 +16,7 @@ namespace CardExchangeService
         public async Task Subscribe(string deviceId, double longitude, double latitude, string displayName, string image)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, deviceId)
-            .ContinueWith(async _ => await _repository.SaveSubscriber(deviceId, longitude, latitude, displayName))
+            .ContinueWith(async _ => await _repository.SaveSubscriber(deviceId, longitude, latitude, displayName, image))
             .ContinueWith(async _ => Clients.Caller.Subscribed(await _repository.GetNearestSubscribers(deviceId)));
         }
 
@@ -29,7 +29,7 @@ namespace CardExchangeService
 
         public async Task Update(string deviceId, double longitude, double latitude, string displayName)
         {
-            await _repository.SaveSubscriber(deviceId, longitude, latitude, displayName).ContinueWith(async x =>
+            await _repository.SaveSubscriber(deviceId, longitude, latitude, displayName, null).ContinueWith(async x =>
             Clients.Caller.Updated(await _repository.GetNearestSubscribers(deviceId)));
         }
 
