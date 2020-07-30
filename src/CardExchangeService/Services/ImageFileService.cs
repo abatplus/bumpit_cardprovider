@@ -38,6 +38,14 @@ namespace CardExchangeService.Services
             return String.Empty;
         }
 
+        public void DeleteImageFile(string imagePath)
+        {
+            if (File.Exists(imagePath))
+            {
+                File.Delete(imagePath);
+            }
+        }
+
         public string SaveImageToFile(string base64StringImage)
         {
             //data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABA...

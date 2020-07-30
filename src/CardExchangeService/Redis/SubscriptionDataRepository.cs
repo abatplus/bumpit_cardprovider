@@ -15,6 +15,12 @@ namespace CardExchangeService.Redis
         {
             this.redisClient = redisClient;
             this.imageFileService = imageFileService;
+
+            redisClient.KeyDeletedEvent += async id =>
+            {
+                //TODO: the key that stores a path is already deleted
+                imageFileService.DeleteImageFile(await GetThumbnailPath(id));
+            };
         }
 
         public async Task<IList<string>> GetNearestSubscribers(string deviceId)
@@ -70,6 +76,8 @@ namespace CardExchangeService.Redis
 
         public async Task<bool> DeleteSubscriber(string deviceId)
         {
+            imageFileService.DeleteImageFile(await GetThumbnailPath(deviceId));
+
             return await await redisClient.RemoveKey(deviceId).ContinueWith(
                 x => redisClient.GeoRemove(deviceId));
         }
