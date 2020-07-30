@@ -1,7 +1,9 @@
 ﻿using System.Threading.Tasks;
 using CardExchangeService;
 using CardExchangeService.Redis;
+using CardExchangeService.Services;
 using FluentAssertions;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using Newtonsoft.Json;
@@ -11,8 +13,8 @@ namespace CardExchangeServiceTests
 {
     public class SubscriptionDataRepositoryTest
     {
-        private readonly Mock<IConfiguration> configurationMock;
         private readonly IRedisClient _redisClient;
+        private readonly IImageFileService _ImageFileService;
         private readonly ISubscriptionDataRepository _repository;
 
         private const string deviceId1 = "d77b8214 - f7de - 4405 - abda - e87cfa05abac";
@@ -25,7 +27,8 @@ namespace CardExchangeServiceTests
 
         public SubscriptionDataRepositoryTest()
         {
-            configurationMock = new Mock<IConfiguration>();
+            Mock<IConfiguration> configurationMock = new Mock<IConfiguration>();
+            Mock<IWebHostEnvironment> webHostEnvironmentMock = new Mock<IWebHostEnvironment>();
 
             configurationMock.Setup(x => x["Redis:Host"]).Returns("localhost");
             configurationMock.Setup(x => x["Redis:Port"]).Returns("6379");
@@ -33,7 +36,8 @@ namespace CardExchangeServiceTests
             configurationMock.Setup(x => x["Redis:KeyExpireTimeout_s"]).Returns("2");
 
             _redisClient = new RedisClient(configurationMock.Object);
-            _repository = new SubscriptionDataRepository(_redisClient);
+            _ImageFileService = new ImageFileService(configurationMock.Object, webHostEnvironmentMock.Object);
+            _repository = new SubscriptionDataRepository(_redisClient, _ImageFileService);
         }
 
         [Fact]

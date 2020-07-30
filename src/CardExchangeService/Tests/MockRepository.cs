@@ -75,5 +75,10 @@ namespace CardExchangeService.Tests
 
             return true;
         }
+
+        public async Task<string> GetThumbnailUrl(string deviceId)
+        {
+            return string.Empty;
+        }
     }
 }
