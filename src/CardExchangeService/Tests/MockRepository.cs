@@ -80,5 +80,10 @@ namespace CardExchangeService.Tests
         {
             return string.Empty;
         }
+
+        public async Task<string> GetSubscriberImage(string deviceId)
+        {
+            return string.Empty;
+        }
     }
 }

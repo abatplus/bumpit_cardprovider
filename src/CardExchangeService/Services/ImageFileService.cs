@@ -27,18 +27,24 @@ namespace CardExchangeService.Services
             _folder = config["ImageFileSettings:Folder"];
         }
 
-        public string GetImage(string deviceId)
+        public string GetImage(string imagePath)
         {
-            throw new System.NotImplementedException();
+            if (File.Exists(imagePath))
+            {
+                byte[] imageArray = File.ReadAllBytes(imagePath);
+                return @"data:image/"+ Path.GetExtension(imagePath) + ";base64" + "," + Convert.ToBase64String(imageArray);
+            }
+
+            return String.Empty;
         }
 
         public string SaveImageToFile(string base64StringImage)
         {
             //data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABA...
             var imageInfo = base64StringImage.Split(',');
-            if (imageInfo.Length<2)
+            if (imageInfo.Length < 2)
                 return string.Empty;
-            string fileExtension = imageInfo[0].Remove(0, @"data:image/".Length)+".";
+            string fileExtension = imageInfo[0].Remove(0, @"data:image/".Length) + ".";
             byte[] bytes = Convert.FromBase64String(imageInfo[1]);
 
             if (!ValidateExtension(fileExtension))
@@ -50,7 +56,7 @@ namespace CardExchangeService.Services
             var img = CreateThumbnailImage(bytes);
 
             //????
-          //  ValidateImageSize(img);
+            //  ValidateImageSize(img);
 
             var folderPath = Path.Combine(_WebHostEnvironment.WebRootPath, _folder);
 
@@ -70,7 +76,6 @@ namespace CardExchangeService.Services
 
             return filePath;
         }
-
 
         private bool ValidateExtension(string fileExtension)
         {

@@ -76,12 +76,19 @@ namespace CardExchangeService.Redis
 
         public async Task<string> GetThumbnailUrl(string deviceId)
         {
+            string imagePath = await GetThumbnailPath(deviceId);
+
+            return imagePath?.Replace("\\", "/");
+        }
+
+        private async Task<string> GetThumbnailPath(string deviceId)
+        {
             if (string.IsNullOrWhiteSpace(deviceId))
             {
                 return string.Empty;
             }
 
-            string resUrl = string.Empty;
+            string res = string.Empty;
 
             try
             {
@@ -89,14 +96,19 @@ namespace CardExchangeService.Redis
 
                 var imageData = JsonConvert.DeserializeObject<ImageData>(imageDataStr);
 
-                resUrl = imageData.FilePath?.Replace("\\", "/");
+                res = imageData.FilePath;
             }
             catch (Exception e)
             {
                 //TODO Log error 
             }
 
-            return resUrl;
+            return res;
+        }
+
+        public async Task<string> GetSubscriberImage(string deviceId)
+        {
+            return imageFileService.GetImage(await GetThumbnailPath(deviceId));
         }
     }
 }

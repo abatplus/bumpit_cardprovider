@@ -4,6 +4,6 @@
     {
         string SaveImageToFile(string base64StringImage);
 
-        string GetImage(string deviceId);
+        string GetImage(string imagePath);
     }
 }

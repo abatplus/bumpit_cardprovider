@@ -10,5 +10,6 @@ namespace CardExchangeService.Redis
         Task<bool> DeleteSubscriber(string deviceId);
         Task<IList<string>> GetNearestSubscribers(string deviceId);
         Task<string> GetThumbnailUrl(string deviceId);
+        Task<string> GetSubscriberImage(string deviceId);
     }
 }
