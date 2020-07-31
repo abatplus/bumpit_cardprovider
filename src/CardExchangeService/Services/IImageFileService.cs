@@ -2,7 +2,7 @@
 {
     public interface IImageFileService
     {
-        string SaveImageToFile(string base64StringImage);
+        void SaveImageToFile(string base64StringImage, out string imagePath, out string thumbnailPath);
 
         string GetImage(string imagePath);
 

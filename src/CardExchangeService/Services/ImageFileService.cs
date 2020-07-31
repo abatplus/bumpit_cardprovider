@@ -10,21 +10,27 @@ namespace CardExchangeService.Services
 {
     public class ImageFileService : IImageFileService
     {
-        private int _sizeLimitBytes;
-        private int _width;
-        private int _height;
-        private string _allowedExtensions;
-        private string _folder;
-        private readonly IWebHostEnvironment _WebHostEnvironment;
+        private readonly int _sizeLimitBytes;
+        private readonly int _thumbWidth;
+        private readonly int _thumbHeight;
+        private readonly int _maxWidth;
+        private readonly int _maxHeight;
+        private readonly string _allowedExtensions;
+        private readonly string _thumbFolder;
+        private readonly string _imagesFolder;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         public ImageFileService(IConfiguration config, IWebHostEnvironment env)
         {
-            _WebHostEnvironment = env;
+            _webHostEnvironment = env;
             _sizeLimitBytes = Convert.ToInt32(config["ImageFileSettings:SizeLimitBytes"]);
-            _width = Convert.ToInt32(config["ImageFileSettings:Width"]);
-            _height = Convert.ToInt32(config["ImageFileSettings:Height"]);
+            _thumbWidth = Convert.ToInt32(config["ImageFileSettings:ThumbWidth"]);
+            _thumbHeight = Convert.ToInt32(config["ImageFileSettings:ThumbHeight"]);
+            _maxWidth = Convert.ToInt32(config["ImageFileSettings:MaxWidth"]);
+            _maxHeight = Convert.ToInt32(config["ImageFileSettings:MaxHeight"]);
             _allowedExtensions = config["ImageFileSettings:AllowedExtensions"];
-            _folder = config["ImageFileSettings:Folder"];
+            _thumbFolder = config["ImageFileSettings:ThumbFolder"];
+            _imagesFolder = config["ImageFileSettings:ImagesFolder"];
         }
 
         public string GetImage(string imagePath)
@@ -32,7 +38,7 @@ namespace CardExchangeService.Services
             if (File.Exists(imagePath))
             {
                 byte[] imageArray = File.ReadAllBytes(imagePath);
-                return @"data:image/"+ Path.GetExtension(imagePath) + ";base64" + "," + Convert.ToBase64String(imageArray);
+                return @"data:image/" + Path.GetExtension(imagePath) + ";base64" + "," + Convert.ToBase64String(imageArray);
             }
 
             return String.Empty;
@@ -40,33 +46,50 @@ namespace CardExchangeService.Services
 
         public void DeleteImageFile(string imagePath)
         {
-            if (File.Exists(imagePath))
+            if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
             {
                 File.Delete(imagePath);
             }
         }
 
-        public string SaveImageToFile(string base64StringImage)
+        public void SaveImageToFile(string base64StringImage, out string imagePath, out string thumbnailPath)
         {
+            imagePath = string.Empty;
+            thumbnailPath = string.Empty;
             //data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABA...
             var imageInfo = base64StringImage.Split(',');
+
             if (imageInfo.Length < 2)
-                return string.Empty;
+                return;
+
             string fileExtension = imageInfo[0].Remove(0, @"data:image/".Length) + ".";
             byte[] bytes = Convert.FromBase64String(imageInfo[1]);
 
             if (!ValidateExtension(fileExtension))
-                return string.Empty;
+                return;
 
             if (!ValidateFileSize(bytes))
-                return string.Empty;
+                return;
 
-            var img = CreateThumbnailImage(bytes);
+            Image image;
+            using (MemoryStream ms = new MemoryStream(bytes))
+            {
+                image = Image.FromStream(ms);
+            }
 
-            //????
-            //  ValidateImageSize(img);
+            if (!ValidateImageSize(image))
+                return;
 
-            var folderPath = Path.Combine(_WebHostEnvironment.WebRootPath, _folder);
+            var thumbnailImage = CreateThumbnailImage(image);
+
+            imagePath = SaveImageToFile(image, fileExtension, _imagesFolder);
+
+            thumbnailPath = SaveImageToFile(thumbnailImage, fileExtension, _thumbFolder);
+        }
+
+        private string SaveImageToFile(Image img, string fileExtension, string imageFolder)
+        {
+            var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, imageFolder);
 
             if (!Directory.Exists(folderPath))
                 Directory.CreateDirectory(folderPath);
@@ -75,8 +98,7 @@ namespace CardExchangeService.Services
 
             do
             {
-                string fileName;
-                fileName = GenerateFileName(fileExtension);
+                var fileName = GenerateFileName(fileExtension);
                 filePath = Path.Combine(folderPath, fileName);
             } while (File.Exists(filePath));
 
@@ -97,7 +119,7 @@ namespace CardExchangeService.Services
 
         private bool ValidateImageSize(Image image)
         {
-            return image.Width == _width && image.Height == _height;
+            return image.Width == _maxWidth && image.Height == _maxHeight;
         }
 
         private string GenerateFileName(string fileExtension)
@@ -107,24 +129,19 @@ namespace CardExchangeService.Services
             return $"{fileName}{fileExtension}";
         }
 
-        private Image CreateThumbnailImage(byte[] bytes)
+        private Image CreateThumbnailImage(Image image)
         {
-            using (MemoryStream ms = new MemoryStream(bytes))
-            {
-                Bitmap thumb = new Bitmap(_width, _height);
-                using (Image bmp = Image.FromStream(ms))
-                {
-                    using (Graphics g = Graphics.FromImage(thumb))
-                    {
-                        g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                        g.CompositingQuality = CompositingQuality.HighQuality;
-                        g.SmoothingMode = SmoothingMode.HighQuality;
-                        g.DrawImage(bmp, 0, 0, _width, _height);
-                    }
-                }
+            Bitmap thumb = new Bitmap(_thumbWidth, _thumbHeight);
 
-                return thumb;
+            using (Graphics g = Graphics.FromImage(thumb))
+            {
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                g.CompositingQuality = CompositingQuality.HighQuality;
+                g.SmoothingMode = SmoothingMode.HighQuality;
+                g.DrawImage(image, 0, 0, _thumbWidth, _thumbHeight);
             }
+
+            return thumb;
         }
     }
 }

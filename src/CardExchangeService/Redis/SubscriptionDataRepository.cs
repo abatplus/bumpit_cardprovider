@@ -44,7 +44,12 @@ namespace CardExchangeService.Redis
                             string subscData = await redisClient.GetString(el.Member);
                             var imageData = JsonConvert.DeserializeObject<ImageData>(subscData);
                             resList.Add(JsonConvert.SerializeObject(
-                                new SubscriptionData() { DeviceId = el.Member, DisplayName = imageData.DisplayName }
+                                new SubscriptionData()
+                                {
+                                    DeviceId = el.Member,
+                                    DisplayName = imageData.DisplayName,
+                                    ThumbnailUrl = GetUrlFromPath(imageData.ThumbnailFilePath)
+                                }
                             ));
                         }
                     }
@@ -61,22 +66,27 @@ namespace CardExchangeService.Redis
         public async Task<bool> SaveSubscriber(string deviceId, double longitude, double latitude, string displayName, string image)
         {
             string imageFilePath = String.Empty;
+            string thumnbnailFilePath = String.Empty;
             if (!string.IsNullOrEmpty(image))
             {
-                imageFilePath = imageFileService.SaveImageToFile(image);
+                imageFileService.SaveImageToFile(image, out imageFilePath, out thumnbnailFilePath);
             }
 
             return await await redisClient.SetString(deviceId, JsonConvert.SerializeObject(new ImageData()
             {
                 DisplayName = displayName,
-                FilePath = imageFilePath
+                ImageFilePath = imageFilePath,
+                ThumbnailFilePath = thumnbnailFilePath
             })).ContinueWith(
                x => redisClient.GeoAdd(longitude, latitude, deviceId));
         }
 
         public async Task<bool> DeleteSubscriber(string deviceId)
         {
-            imageFileService.DeleteImageFile(await GetThumbnailPath(deviceId));
+            var imageData = await GetImageData(deviceId);
+
+            imageFileService.DeleteImageFile(imageData.ImageFilePath);
+            imageFileService.DeleteImageFile(imageData.ThumbnailFilePath);
 
             return await await redisClient.RemoveKey(deviceId).ContinueWith(
                 x => redisClient.GeoRemove(deviceId));
@@ -84,27 +94,36 @@ namespace CardExchangeService.Redis
 
         public async Task<string> GetThumbnailUrl(string deviceId)
         {
-            string imagePath = await GetThumbnailPath(deviceId);
+            return GetUrlFromPath(await GetThumbnailPath(deviceId));
+        }
 
-            return imagePath?.Replace("\\", "/");
+        private string GetUrlFromPath(string filePath)
+        {
+            return filePath?.Replace("\\", "/");
         }
 
         private async Task<string> GetThumbnailPath(string deviceId)
         {
+            return (await GetImageData(deviceId))?.ThumbnailFilePath;
+        }
+
+        private async Task<string> GetImagePath(string deviceId)
+        {
+            return (await GetImageData(deviceId))?.ImageFilePath;
+        }
+
+        private async Task<ImageData> GetImageData(string deviceId)
+        {
             if (string.IsNullOrWhiteSpace(deviceId))
             {
-                return string.Empty;
+                return null;
             }
 
-            string res = string.Empty;
+            ImageData res = null;
 
             try
             {
-                string imageDataStr = await redisClient.GetString(deviceId);
-
-                var imageData = JsonConvert.DeserializeObject<ImageData>(imageDataStr);
-
-                res = imageData.FilePath;
+                res = JsonConvert.DeserializeObject<ImageData>(await redisClient.GetString(deviceId));
             }
             catch (Exception e)
             {
@@ -116,7 +135,7 @@ namespace CardExchangeService.Redis
 
         public async Task<string> GetSubscriberImage(string deviceId)
         {
-            return imageFileService.GetImage(await GetThumbnailPath(deviceId));
+            return imageFileService.GetImage(await GetImagePath(deviceId));
         }
     }
 }
