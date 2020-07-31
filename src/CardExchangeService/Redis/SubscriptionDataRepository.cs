@@ -74,6 +74,7 @@ namespace CardExchangeService.Redis
 
             return await await redisClient.SetString(deviceId, JsonConvert.SerializeObject(new ImageData()
             {
+                DeviceId = deviceId,
                 DisplayName = displayName,
                 ImageFilePath = imageFilePath,
                 ThumbnailFilePath = thumnbnailFilePath
@@ -85,8 +86,8 @@ namespace CardExchangeService.Redis
         {
             var imageData = await GetImageData(deviceId);
 
-            imageFileService.DeleteImageFile(imageData.ImageFilePath);
-            imageFileService.DeleteImageFile(imageData.ThumbnailFilePath);
+            imageFileService.DeleteImageFile(imageData?.ImageFilePath);
+            imageFileService.DeleteImageFile(imageData?.ThumbnailFilePath);
 
             return await await redisClient.RemoveKey(deviceId).ContinueWith(
                 x => redisClient.GeoRemove(deviceId));

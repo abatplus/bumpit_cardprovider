@@ -62,7 +62,7 @@ namespace CardExchangeService.Services
             if (imageInfo.Length < 2)
                 return;
 
-            string fileExtension = imageInfo[0].Remove(0, @"data:image/".Length) + ".";
+            string fileExtension = "." + imageInfo[0].Replace("data:image/", "").Replace(";base64", "");
             byte[] bytes = Convert.FromBase64String(imageInfo[1]);
 
             if (!ValidateExtension(fileExtension))
