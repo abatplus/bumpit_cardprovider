@@ -42,15 +42,18 @@ namespace CardExchangeService.Redis
                         if (el.Member != deviceId)
                         {
                             string subscData = await redisClient.GetString(el.Member);
-                            var imageData = JsonConvert.DeserializeObject<ImageData>(subscData);
-                            resList.Add(JsonConvert.SerializeObject(
-                                new SubscriptionData()
-                                {
-                                    DeviceId = el.Member,
-                                    DisplayName = imageData.DisplayName,
-                                    ThumbnailUrl = GetUrlFromPath(imageData.ThumbnailFilePath)
-                                }
-                            ));
+                            if (!string.IsNullOrWhiteSpace(subscData))
+                            {
+                                var imageData = JsonConvert.DeserializeObject<ImageData>(subscData);
+                                resList.Add(JsonConvert.SerializeObject(
+                                    new SubscriptionData()
+                                    {
+                                        DeviceId = el.Member,
+                                        DisplayName = imageData?.DisplayName,
+                                        ThumbnailUrl = GetUrlFromPath(imageData?.ThumbnailFilePath)
+                                    }
+                                ));
+                            }
                         }
                     }
                 }

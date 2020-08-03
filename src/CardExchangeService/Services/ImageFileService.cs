@@ -94,7 +94,7 @@ namespace CardExchangeService.Services
             if (!Directory.Exists(folderPath))
                 Directory.CreateDirectory(folderPath);
 
-            string filePath;
+            string filePath = string.Empty;
 
             do
             {

@@ -35,7 +35,7 @@ namespace CardExchangeServiceTests
             configurationMock.Setup(x => x["Redis:Host"]).Returns("localhost");
             configurationMock.Setup(x => x["Redis:Port"]).Returns("6379");
             configurationMock.Setup(x => x["Redis:GeoRadius_m"]).Returns("5");
-            configurationMock.Setup(x => x["Redis:KeyExpireTimeout_s"]).Returns("2");
+            configurationMock.Setup(x => x["Redis:KeyExpireTimeout_s"]).Returns("5");
 
             configurationMock.Setup(x => x["ImageFileSettings:SizeLimitBytes"]).Returns("2097152");
             configurationMock.Setup(x => x["ImageFileSettings:ThumbWidth"]).Returns("100");
@@ -177,7 +177,7 @@ namespace CardExchangeServiceTests
         [Fact]
         public async void Add2SubscriptionsWithImage_InRadius_GetExisting_Ok()
         {
-            
+
             await _repository.DeleteSubscriber(deviceId1).ContinueWith(x => _repository.DeleteSubscriber(deviceId2))
                 .ContinueWith(x => _repository.DeleteSubscriber(deviceId3));
 
@@ -256,8 +256,8 @@ namespace CardExchangeServiceTests
             await Task.Delay(2000);
 
             await _repository.SaveSubscriber(deviceId1, longitude, latitude1, "displayName1", bse64StringImage1)
-                .ContinueWith(x => _repository.SaveSubscriber(deviceId2, longitude, latitudeNotIn2, "displayName2", bse64StringImage2))
-                .ContinueWith(x => _repository.SaveSubscriber(deviceId3, longitude, latitudeIn2, "displayName3", bse64StringImage1));
+                .ContinueWith(x => _repository.SaveSubscriber(deviceId2, longitude, latitudeNotIn2, "displayName2", null))
+                .ContinueWith(x => _repository.SaveSubscriber(deviceId3, longitude, latitudeIn2, "displayName3", bse64StringImage2));
 
             var list = await _repository.GetNearestSubscribers(deviceId1);
 
@@ -285,7 +285,7 @@ namespace CardExchangeServiceTests
             data.Longitute.Should().Be(0);
             data.DeviceId.Should().Be(deviceId3);
             data.DisplayName.Should().Be("displayName3");
-            data.ThumbnailUrl.Should().BeNullOrEmpty();
+            data.ThumbnailUrl.Should().NotBeNullOrEmpty();
         }
         #endregion
     }
