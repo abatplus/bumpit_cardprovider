@@ -3,7 +3,6 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 
 namespace CardExchangeService.Services
@@ -82,12 +81,12 @@ namespace CardExchangeService.Services
 
             var thumbnailImage = CreateThumbnailImage(image);
 
-            imagePath = SaveImageToFile(image, fileExtension, _imagesFolder);
+            imagePath = SaveImageToFile(bytes, fileExtension, _imagesFolder);
 
             thumbnailPath = SaveImageToFile(thumbnailImage, fileExtension, _thumbFolder);
         }
 
-        private string SaveImageToFile(Image img, string fileExtension, string imageFolder)
+        private string GetImageFilePath(string fileExtension, string imageFolder)
         {
             var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, imageFolder);
 
@@ -101,6 +100,22 @@ namespace CardExchangeService.Services
                 var fileName = GenerateFileName(fileExtension);
                 filePath = Path.Combine(folderPath, fileName);
             } while (File.Exists(filePath));
+
+            return filePath;
+        }
+
+        private string SaveImageToFile(byte[] img, string fileExtension, string imageFolder)
+        {
+            var filePath = GetImageFilePath(fileExtension, imageFolder);
+
+            File.WriteAllBytes(filePath, img);
+
+            return filePath;
+        }
+
+        private string SaveImageToFile(Image img, string fileExtension, string imageFolder)
+        {
+            var filePath = GetImageFilePath(fileExtension, imageFolder);
 
             img.Save(filePath);
 

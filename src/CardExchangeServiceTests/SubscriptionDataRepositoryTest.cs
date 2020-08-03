@@ -287,6 +287,75 @@ namespace CardExchangeServiceTests
             data.DisplayName.Should().Be("displayName3");
             data.ThumbnailUrl.Should().NotBeNullOrEmpty();
         }
+
+        [Fact]
+        public async void AddSubscriptionWithImage_GetSubscriberImage_Ok()
+        {
+            await _repository.DeleteSubscriber(deviceId1).ContinueWith(x => _repository.DeleteSubscriber(deviceId2))
+                .ContinueWith(x => _repository.DeleteSubscriber(deviceId3));
+
+            await Task.Delay(2000);
+
+            await _repository.SaveSubscriber(deviceId1, longitude, latitude1, "displayName1", bse64StringImage1);
+
+            await Task.Delay(2000);
+
+            var resImage = await _repository.GetSubscriberImage(deviceId1);
+
+            resImage.Should().NotBeNullOrWhiteSpace();
+            bse64StringImage1.Should().NotBeNullOrWhiteSpace();
+
+            var imageBytes1 = GetImageBytes(resImage);
+            var imageBytes2 = GetImageBytes(bse64StringImage1);
+
+            imageBytes1.Should().NotBeNull();
+            imageBytes2.Should().NotBeNull();
+
+           // File.WriteAllBytes("../../../img/3.png", imageBytes1);
+
+            imageBytes1.Should().BeEquivalentTo(imageBytes2);
+        }
+
+        private byte[] GetImageBytes(string bse64StringImage)
+        {
+            var imageInfo = bse64StringImage.Split(',');
+
+            if (imageInfo.Length < 2)
+                return null;
+
+            return Convert.FromBase64String(imageInfo[1]);
+        }
+
+        [Fact]
+        public async void Add2SubscriptionsWithImage_GetThumbnailUrl_Ok()
+        {
+            await _repository.DeleteSubscriber(deviceId1).ContinueWith(x => _repository.DeleteSubscriber(deviceId2))
+                .ContinueWith(x => _repository.DeleteSubscriber(deviceId3));
+
+            await Task.Delay(2000);
+
+
+            await _repository.SaveSubscriber(deviceId1, longitude, latitude1, "displayName1", bse64StringImage1)
+                .ContinueWith(x => _repository.SaveSubscriber(deviceId2, longitude, latitudeIn2, "displayName2", bse64StringImage2));
+
+            var list = await _repository.GetNearestSubscribers(deviceId1);
+
+            list.Should().NotBeNull();
+            list.Count.Should().Be(1);
+
+            var data = JsonConvert.DeserializeObject<SubscriptionData>(list[0]);
+            data.Should().NotBeNull();
+            data.Latitude.Should().Be(0);
+            data.Longitute.Should().Be(0);
+            data.DeviceId.Should().Be(deviceId2);
+            data.DisplayName.Should().Be("displayName2");
+            data.ThumbnailUrl.Should().NotBeNullOrEmpty();
+
+            var resThumbnailUrl = await _repository.GetThumbnailUrl(deviceId2);
+
+            data.ThumbnailUrl.Should().Be(resThumbnailUrl);
+
+        }
         #endregion
     }
 }
