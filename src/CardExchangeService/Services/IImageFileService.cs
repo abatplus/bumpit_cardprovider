@@ -7,5 +7,7 @@
         string GetImage(string imagePath);
 
         void DeleteImageFile(string imagePath);
+
+        string GetUrlFromPath(string filePath);
     }
 }

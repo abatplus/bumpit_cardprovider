@@ -158,5 +158,11 @@ namespace CardExchangeService.Services
 
             return thumb;
         }
+
+        public string GetUrlFromPath(string filePath)
+        {
+            var relativPath = Path.GetRelativePath(_webHostEnvironment.WebRootPath, filePath);
+            return relativPath?.Replace("\\", "/");
+        }
     }
 }

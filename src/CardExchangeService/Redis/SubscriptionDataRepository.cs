@@ -1,6 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using CardExchangeService.Services;
 
@@ -50,7 +51,7 @@ namespace CardExchangeService.Redis
                                     {
                                         DeviceId = el.Member,
                                         DisplayName = imageData?.DisplayName,
-                                        ThumbnailUrl = GetUrlFromPath(imageData?.ThumbnailFilePath)
+                                        ThumbnailUrl = imageFileService.GetUrlFromPath(imageData?.ThumbnailFilePath)
                                     }
                                 ));
                             }
@@ -83,7 +84,7 @@ namespace CardExchangeService.Redis
             {
                 var serverImageData = await GetImageData(deviceId);
                 imageData.ImageFilePath = serverImageData?.ImageFilePath;
-                imageData.ThumbnailFilePath = serverImageData?.ImageFilePath;
+                imageData.ThumbnailFilePath = serverImageData?.ThumbnailFilePath;
             }
 
             return await await redisClient.SetString(deviceId, JsonConvert.SerializeObject(imageData)).ContinueWith(
@@ -103,12 +104,7 @@ namespace CardExchangeService.Redis
 
         public async Task<string> GetThumbnailUrl(string deviceId)
         {
-            return GetUrlFromPath(await GetThumbnailPath(deviceId));
-        }
-
-        private string GetUrlFromPath(string filePath)
-        {
-            return filePath?.Replace("\\", "/");
+            return imageFileService.GetUrlFromPath(await GetThumbnailPath(deviceId));
         }
 
         private async Task<string> GetThumbnailPath(string deviceId)
