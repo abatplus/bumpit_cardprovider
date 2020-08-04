@@ -56,10 +56,10 @@ namespace CardExchangeServiceTests
 
         private void InitTestImageString()
         {
-            Byte[] bytes = File.ReadAllBytes("../../../img/1.png");
-            bse64StringImage1 = @"data:image/png;base64," + Convert.ToBase64String(bytes);
-            bytes = File.ReadAllBytes("../../../img/2.png");
-            bse64StringImage2 = @"data:image/png;base64," + Convert.ToBase64String(bytes);
+            Byte[] bytes = File.ReadAllBytes("../../../img/1.jpg");
+            bse64StringImage1 = @"data:image/jpg;base64," + Convert.ToBase64String(bytes);
+            bytes = File.ReadAllBytes("../../../img/2.jpg");
+            bse64StringImage2 = @"data:image/jpg;base64," + Convert.ToBase64String(bytes);
         }
 
         #region Without images
@@ -311,7 +311,7 @@ namespace CardExchangeServiceTests
             imageBytes1.Should().NotBeNull();
             imageBytes2.Should().NotBeNull();
 
-           // File.WriteAllBytes("../../../img/3.png", imageBytes1);
+           // File.WriteAllBytes("../../../img/3.jpg", imageBytes1);
 
             imageBytes1.Should().BeEquivalentTo(imageBytes2);
         }

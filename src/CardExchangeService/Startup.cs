@@ -24,7 +24,10 @@ namespace CardExchangeService
             services.AddSingleton<IImageFileService, ImageFileService>();
             services.AddSingleton<IRedisClient, RedisClient>();
             services.AddControllers();
-            services.AddSignalR();
+            services.AddSignalR(conf =>
+            {
+                conf.MaximumReceiveMessageSize = null;
+            });
             services.AddTransient<ISubscriptionDataRepository, SubscriptionDataRepository>();
         }
 

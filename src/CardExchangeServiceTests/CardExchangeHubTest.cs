@@ -30,21 +30,29 @@ namespace CardExchangeServiceTests
         }
         private void InitTestImageString()
         {
-            Byte[] bytes = File.ReadAllBytes("../../../img/1.png");
-            bse64StringImage1 = @"data:image/png;base64," + Convert.ToBase64String(bytes);
-            bytes = File.ReadAllBytes("../../../img/2.png");
-            bse64StringImage2 = @"data:image/png;base64," + Convert.ToBase64String(bytes);
+            Byte[] bytes = File.ReadAllBytes("../../../img/1.jpg");
+            bse64StringImage1 = @"data:image/jpg;base64," + Convert.ToBase64String(bytes);
+            bytes = File.ReadAllBytes("../../../img/2.jpg");
+            bse64StringImage2 = @"data:image/jpg;base64," + Convert.ToBase64String(bytes);
+        }
+
+        private HubConnection CreateConnection()
+        {
+            var connection = new HubConnectionBuilder()
+                .WithUrl(connectionUrl)
+                .Build();
+            connection.HandshakeTimeout = new TimeSpan(0, 0, 0, 0, 60000);
+            connection.KeepAliveInterval = new TimeSpan(0, 0, 0, 0, 60000);
+            connection.ServerTimeout = new TimeSpan(0, 0, 0, 0, 120000);
+
+            return connection;
         }
 
         [Fact]
         public async void ConnectionTest_SubscribeUpdate2Subscribers_SubscribedCalled()
         {
-            var connection1 = new HubConnectionBuilder()
-                .WithUrl(connectionUrl)
-                .Build();
-            var connection2 = new HubConnectionBuilder()
-                .WithUrl(connectionUrl)
-                .Build();
+            var connection1 = CreateConnection();
+            var connection2 = CreateConnection();
 
             bool isSubscribedCalled1 = false;
             IEnumerable<string> resPeers1 = new List<string>();
@@ -124,9 +132,7 @@ namespace CardExchangeServiceTests
         [Fact]
         public async void ConnectionTest_Subscribe_SubscribedCalled()
         {
-            var connection = new HubConnectionBuilder()
-                .WithUrl(connectionUrl)
-                .Build();
+            var connection = CreateConnection();
 
             bool isSubscribedCalled = false;
             IEnumerable<string> resPeers = new List<string>();
@@ -154,9 +160,7 @@ namespace CardExchangeServiceTests
         [Fact]
         public async void ConnectionTest_UnSubscribe_UnSubscribedCalled()
         {
-            var connection = new HubConnectionBuilder()
-                .WithUrl(connectionUrl)
-                .Build();
+            var connection = CreateConnection();
 
             bool isSubscribedCalled = false;
             IEnumerable<string> resPeers = new List<string>();
@@ -199,12 +203,8 @@ namespace CardExchangeServiceTests
         [Fact]
         public async void ConnectionTest_Subscribe2Subscribers_ManyUpdates_NoFallOuts()
         {
-            var connection1 = new HubConnectionBuilder()
-                .WithUrl(connectionUrl)
-                .Build();
-            var connection2 = new HubConnectionBuilder()
-                .WithUrl(connectionUrl)
-                .Build();
+            var connection1 = CreateConnection();
+            var connection2 = CreateConnection();
 
             bool isSubscribedCalled1 = false;
             IEnumerable<string> resPeers1 = new List<string>();
@@ -297,12 +297,8 @@ namespace CardExchangeServiceTests
         public async void ConnectionTest_Swap2Subscribers_SubscribedCalled()
         {
             //Connection
-            var connection1 = new HubConnectionBuilder()
-                .WithUrl(connectionUrl)
-                .Build();
-            var connection2 = new HubConnectionBuilder()
-                .WithUrl(connectionUrl)
-                .Build();
+            var connection1 = CreateConnection();
+            var connection2 = CreateConnection();
 
             await connection1.StartAsync().ContinueWith(x =>
             {
@@ -479,18 +475,14 @@ namespace CardExchangeServiceTests
         public async void ConnectionTest_Swap2Subscribers_RevokeCardExchangeRequest_SubscribedCalled()
         {
             //Connection
-            var connection1 = new HubConnectionBuilder()
-                .WithUrl(connectionUrl)
-                .Build();
-            var connection2 = new HubConnectionBuilder()
-                .WithUrl(connectionUrl)
-                .Build();
+            var connection1 = CreateConnection();
+            var connection2 = CreateConnection();
 
             await connection1.StartAsync().ContinueWith(x =>
             {
                 if (connection1.State == HubConnectionState.Connected)
                 {
-                    connection1.SendAsync("Subscribe", deviceId1, longitude, latitude1, "displayName1", null);
+                    connection1.SendAsync("Subscribe", deviceId1, longitude, latitude1, "displayName1", bse64StringImage1);
                     ;
                 }
             });
@@ -499,7 +491,7 @@ namespace CardExchangeServiceTests
             {
                 if (connection2.State == HubConnectionState.Connected)
                 {
-                    connection2.SendAsync("Subscribe", deviceId2, longitude, latitudeIn2, "displayName2", null);
+                    connection2.SendAsync("Subscribe", deviceId2, longitude, latitudeIn2, "displayName2", bse64StringImage2);
 
                 }
             });
@@ -509,10 +501,12 @@ namespace CardExchangeServiceTests
             //Connection 1
             string deviceIdReqCon1 = string.Empty;
             string displayNameCon1 = string.Empty;
+            string thumbUrlCon1 = string.Empty;
             connection1.On(nameof(ICardExchangeClient.CardExchangeRequested), (string deviceId, string displayName, string thumbUrl) =>
             {
                 deviceIdReqCon1 = deviceId;
                 displayNameCon1 = displayName;
+                thumbUrlCon1 = thumbUrl;
 
                 connection1.SendAsync("AcceptCardExchange", deviceId, deviceId1, "displayName1", "cardData1");
             });
@@ -520,11 +514,13 @@ namespace CardExchangeServiceTests
             string cardExchangeAcceptedPeerDeviceId1 = string.Empty;
             string cardExchangeAcceptedPeerDisplayName1 = string.Empty;
             string cardExchangeAcceptedPeerCardData1 = string.Empty;
+            string cardExchangeAcceptedPeerImage1 = string.Empty;
             connection1.On(nameof(ICardExchangeClient.CardExchangeAccepted), (string peerDeviceId, string peerDisplayName, string peerCardData, string peerImage) =>
             {
                 cardExchangeAcceptedPeerDeviceId1 = peerDeviceId;
                 cardExchangeAcceptedPeerDisplayName1 = peerDisplayName;
                 cardExchangeAcceptedPeerCardData1 = peerCardData;
+                cardExchangeAcceptedPeerImage1 = peerImage;
             });
             string cardExchangeRequestRevokedDeviceId1 = string.Empty;
             connection1.On(nameof(ICardExchangeClient.CardExchangeRequestRevoked), (string deviceId) =>
@@ -536,10 +532,12 @@ namespace CardExchangeServiceTests
             //Connection 2
             string deviceIdReqCon2 = string.Empty;
             string displayNameCon2 = string.Empty;
-            connection2.On(nameof(ICardExchangeClient.CardExchangeRequested), (string deviceId, string displayName, string image) =>
+            string thumbUrlCon2 = string.Empty;
+            connection2.On(nameof(ICardExchangeClient.CardExchangeRequested), (string deviceId, string displayName, string thumbUrl) =>
             {
                 deviceIdReqCon2 = deviceId;
                 displayNameCon2 = displayName;
+                thumbUrlCon2 = thumbUrl;
 
                 connection2.SendAsync("RevokeCardExchangeRequest", deviceId2, deviceId);
             });
