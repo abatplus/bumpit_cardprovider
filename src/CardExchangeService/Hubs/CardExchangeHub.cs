@@ -35,9 +35,7 @@ namespace CardExchangeService
 
         public async Task RequestCardExchange(string deviceId, string peerDeviceId, string displayName)
         {
-            string thumbnailUrl = string.Empty;
-            //TODO : get thumbnailUrl
-            await Clients.Group(peerDeviceId).CardExchangeRequested(deviceId, displayName, thumbnailUrl)
+            await Clients.Group(peerDeviceId).CardExchangeRequested(deviceId, displayName, await _repository.GetThumbnailUrl(deviceId))
             .ContinueWith(_ => Clients.Caller.WaitingForAcceptance(peerDeviceId));
         }
         public async Task RevokeCardExchangeRequest(string deviceId, string peerDeviceId)
@@ -48,17 +46,13 @@ namespace CardExchangeService
 
         public async Task AcceptCardExchange(string deviceId, string peerDeviceId, string peerDisplayName, string peerCardData)
         {
-            string peerImage = string.Empty;
-            //TODO : get peerImage
-            await Clients.Group(deviceId).CardExchangeAccepted(peerDeviceId, peerDisplayName, peerCardData, peerImage)
+            await Clients.Group(deviceId).CardExchangeAccepted(peerDeviceId, peerDisplayName, peerCardData, await _repository.GetSubscriberImage(peerDeviceId))
             .ContinueWith(_ => Clients.Caller.AcceptanceSent(deviceId));
         }
 
         public async Task SendCardData(string deviceId, string peerDeviceId, string displayName, string cardData)
         {
-            string image = string.Empty;
-            //TODO : get image
-            await Clients.Group(peerDeviceId).CardDataReceived(deviceId, displayName, cardData, image)
+            await Clients.Group(peerDeviceId).CardDataReceived(deviceId, displayName, cardData, await _repository.GetSubscriberImage(deviceId))
             .ContinueWith(_ => Clients.Caller.CardDataSent(peerDeviceId));
         }
     }
