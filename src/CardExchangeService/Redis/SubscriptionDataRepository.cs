@@ -68,20 +68,25 @@ namespace CardExchangeService.Redis
 
         public async Task<bool> SaveSubscriber(string deviceId, double longitude, double latitude, string displayName, string image)
         {
-            string imageFilePath = String.Empty;
-            string thumnbnailFilePath = String.Empty;
-            if (!string.IsNullOrEmpty(image))
-            {
-                imageFileService.SaveImageToFile(image, out imageFilePath, out thumnbnailFilePath);
-            }
-
-            return await await redisClient.SetString(deviceId, JsonConvert.SerializeObject(new ImageData()
+            ImageData imageData = new ImageData()
             {
                 DeviceId = deviceId,
-                DisplayName = displayName,
-                ImageFilePath = imageFilePath,
-                ThumbnailFilePath = thumnbnailFilePath
-            })).ContinueWith(
+                DisplayName = displayName
+            };
+            if (!string.IsNullOrEmpty(image))
+            {
+                imageFileService.SaveImageToFile(image, out var imageFilePath, out var thumbFilePath);
+                imageData.ImageFilePath = imageFilePath;
+                imageData.ThumbnailFilePath = thumbFilePath;
+            }
+            else
+            {
+                var serverImageData = await GetImageData(deviceId);
+                imageData.ImageFilePath = serverImageData?.ImageFilePath;
+                imageData.ThumbnailFilePath = serverImageData?.ImageFilePath;
+            }
+
+            return await await redisClient.SetString(deviceId, JsonConvert.SerializeObject(imageData)).ContinueWith(
                x => redisClient.GeoAdd(longitude, latitude, deviceId));
         }
 
