@@ -559,8 +559,10 @@ namespace CardExchangeServiceTests
             //Asserts
             deviceIdReqCon1.Should().Be(deviceId2);
             displayNameCon1.Should().Be("displayName2");
+            thumbUrlCon1.Should().NotBeNullOrEmpty();
             deviceIdReqCon2.Should().Be(deviceId1);
             displayNameCon2.Should().Be("displayName1");
+            thumbUrlCon2.Should().NotBeNullOrEmpty();
 
             //should not be called
             cardExchangeAcceptedPeerDeviceId1.Should().Be(String.Empty);

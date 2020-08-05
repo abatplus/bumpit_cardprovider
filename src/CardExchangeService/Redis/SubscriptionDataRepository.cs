@@ -1,6 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using CardExchangeService.Services;
 
@@ -16,11 +17,8 @@ namespace CardExchangeService.Redis
             this.redisClient = redisClient;
             this.imageFileService = imageFileService;
 
-            redisClient.KeyDeletedEvent += async id =>
-            {
-                //TODO: the key that stores a path is already deleted
-                imageFileService.DeleteImageFile(await GetThumbnailPath(id));
-            };
+            //TODO : this solution dont work. the key that stores a path is at that time already deleted
+            //redisClient.KeyDeletedEvent += DeleteSubscriberImages;
         }
 
         public async Task<IList<string>> GetNearestSubscribers(string deviceId)
@@ -50,7 +48,7 @@ namespace CardExchangeService.Redis
                                     {
                                         DeviceId = el.Member,
                                         DisplayName = imageData?.DisplayName,
-                                        ThumbnailUrl = GetUrlFromPath(imageData?.ThumbnailFilePath)
+                                        ThumbnailUrl = imageFileService.GetUrlFromPath(imageData?.ThumbnailFilePath)
                                     }
                                 ));
                             }
@@ -83,7 +81,7 @@ namespace CardExchangeService.Redis
             {
                 var serverImageData = await GetImageData(deviceId);
                 imageData.ImageFilePath = serverImageData?.ImageFilePath;
-                imageData.ThumbnailFilePath = serverImageData?.ImageFilePath;
+                imageData.ThumbnailFilePath = serverImageData?.ThumbnailFilePath;
             }
 
             return await await redisClient.SetString(deviceId, JsonConvert.SerializeObject(imageData)).ContinueWith(
@@ -92,23 +90,23 @@ namespace CardExchangeService.Redis
 
         public async Task<bool> DeleteSubscriber(string deviceId)
         {
-            var imageData = await GetImageData(deviceId);
-
-            imageFileService.DeleteImageFile(imageData?.ImageFilePath);
-            imageFileService.DeleteImageFile(imageData?.ThumbnailFilePath);
+            DeleteSubscriberImages(deviceId);
 
             return await await redisClient.RemoveKey(deviceId).ContinueWith(
                 x => redisClient.GeoRemove(deviceId));
         }
 
-        public async Task<string> GetThumbnailUrl(string deviceId)
+        private async void DeleteSubscriberImages(string deviceId)
         {
-            return GetUrlFromPath(await GetThumbnailPath(deviceId));
+            var imageData = await GetImageData(deviceId);
+
+            imageFileService.DeleteImageFile(imageData?.ImageFilePath);
+            imageFileService.DeleteImageFile(imageData?.ThumbnailFilePath);
         }
 
-        private string GetUrlFromPath(string filePath)
+        public async Task<string> GetThumbnailUrl(string deviceId)
         {
-            return filePath?.Replace("\\", "/");
+            return imageFileService.GetUrlFromPath(await GetThumbnailPath(deviceId));
         }
 
         private async Task<string> GetThumbnailPath(string deviceId)
