@@ -29,8 +29,8 @@ namespace CardExchangeService
 
         public async Task Update(string deviceId, double longitude, double latitude, string displayName)
         {
-            await _repository.SaveSubscriber(deviceId, longitude, latitude, displayName, null).ContinueWith(async x =>
-            Clients.Caller.Updated(await _repository.GetNearestSubscribers(deviceId)));
+            await _repository.SaveSubscriber(deviceId, longitude, latitude, displayName, null)
+            .ContinueWith(async x => Clients.Caller.Updated(await _repository.GetNearestSubscribers(deviceId)));
         }
 
         public async Task RequestCardExchange(string deviceId, string peerDeviceId, string displayName)

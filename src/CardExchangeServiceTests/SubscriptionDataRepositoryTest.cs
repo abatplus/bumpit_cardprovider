@@ -47,7 +47,7 @@ namespace CardExchangeServiceTests
 
             IRedisClient redisClient = new RedisClient(configurationMock.Object);
             IImageFileService imageFileService = new ImageFileService(configurationMock.Object);
-            _repository = new SubscriptionDataRepository(redisClient, imageFileService);
+            _repository = new SubscriptionDataRepository(redisClient, imageFileService, configurationMock.Object);
 
             InitTestImageString();
         }
