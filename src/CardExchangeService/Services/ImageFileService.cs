@@ -34,7 +34,7 @@ namespace CardExchangeService.Services
 
         public string GetImage(string imagePath)
         {
-            if (File.Exists(imagePath))
+            if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
             {
                 byte[] imageArray = File.ReadAllBytes(imagePath);
                 return @"data:image/" + Path.GetExtension(imagePath) + ";base64" + "," + Convert.ToBase64String(imageArray);
@@ -51,6 +51,20 @@ namespace CardExchangeService.Services
             }
         }
 
+        private string GetFileExtension(string imageInfo)
+        {
+            //data:image/jpeg;base64
+            var headers = imageInfo.Split('/');
+            if (headers.Length < 2)
+                return string.Empty;
+
+            headers = headers[1].Split(';');
+            if (headers.Length < 2)
+                return string.Empty;
+
+            return headers[0].Trim();
+        }
+
         public void SaveImageToFile(string base64StringImage, out string imagePath, out string thumbnailPath)
         {
             imagePath = string.Empty;
@@ -61,7 +75,12 @@ namespace CardExchangeService.Services
             if (imageInfo.Length < 2)
                 return;
 
-            string fileExtension = "." + imageInfo[0].Replace("data:image/", "").Replace(";base64", "");
+            string fileExtension = GetFileExtension(imageInfo[0]);
+            if (!string.IsNullOrWhiteSpace(fileExtension) && fileExtension.IndexOf('.') < 0)
+            {
+                fileExtension = "." + fileExtension;
+            }
+
             byte[] bytes = Convert.FromBase64String(imageInfo[1]);
 
             if (!ValidateExtension(fileExtension))
@@ -161,8 +180,15 @@ namespace CardExchangeService.Services
 
         public string GetUrlFromPath(string filePath)
         {
-            var relativPath = Path.GetRelativePath(_webHostEnvironment.WebRootPath, filePath);
-            return relativPath?.Replace("\\", "/");
+            string relativPath = string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(filePath))
+            {
+                relativPath = Path.GetRelativePath(_webHostEnvironment.WebRootPath, filePath);
+                relativPath = relativPath?.Replace("\\", "/");
+            }
+
+            return relativPath;
         }
     }
 }
