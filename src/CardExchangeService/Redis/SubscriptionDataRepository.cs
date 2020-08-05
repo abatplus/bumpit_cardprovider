@@ -47,12 +47,25 @@ namespace CardExchangeService.Redis
                             if (!string.IsNullOrWhiteSpace(subscData))
                             {
                                 var imageData = JsonConvert.DeserializeObject<ImageData>(subscData);
+                                string thumbnailUrl = string.Empty;
+                                try
+                                {
+                                    thumbnailUrl = !string.IsNullOrWhiteSpace(imageData?.ThumbnailFilePath)
+                                        ? _imageFileService.GetUrlFromPath(imageData?.ThumbnailFilePath)
+                                        : string.Empty;
+                                }
+                                catch (Exception e)
+                                {
+                                    thumbnailUrl = string.Empty;
+                                    //TODO Log error 
+                                }
+
                                 resList.Add(JsonConvert.SerializeObject(
                                     new SubscriptionData()
                                     {
                                         DeviceId = el.Member,
                                         DisplayName = imageData?.DisplayName,
-                                        ThumbnailUrl = _imageFileService.GetUrlFromPath(imageData?.ThumbnailFilePath)
+                                        ThumbnailUrl = thumbnailUrl
                                     }
                                 ));
                             }
@@ -76,20 +89,20 @@ namespace CardExchangeService.Redis
                 DisplayName = displayName
             };
 
-            if (string.IsNullOrEmpty(image))
+            if (!string.IsNullOrEmpty(image))
             {
-                var serverImageData = await GetImageData(deviceId);
-                imageData.ImageFilePath = serverImageData?.ImageFilePath;
-                imageData.ThumbnailFilePath = serverImageData?.ThumbnailFilePath;
+                _imageFileService.SaveImageToFile(image, out var imageFilePath, out var thumbFilePath);
+                imageData.ImageFilePath = imageFilePath ?? string.Empty;
+                imageData.ThumbnailFilePath = thumbFilePath ?? string.Empty;
             }
             else
-            {                
-                _imageFileService.SaveImageToFile(image, out var imageFilePath, out var thumbFilePath);
-                imageData.ImageFilePath = imageFilePath;
-                imageData.ThumbnailFilePath = thumbFilePath;
+            {
+                var serverImageData = await GetImageData(deviceId);
+                imageData.ImageFilePath = serverImageData?.ImageFilePath ?? string.Empty;
+                imageData.ThumbnailFilePath = serverImageData?.ThumbnailFilePath ?? string.Empty;
             }
 
-            if(!_deleteTimers.ContainsKey(deviceId))
+            if (!_deleteTimers.ContainsKey(deviceId))
             {
                 _deleteTimers.TryAdd(deviceId, new DelayTimer(_=> DeleteImages(deviceId), null, _redisKeyExpireTimeout));
             }
