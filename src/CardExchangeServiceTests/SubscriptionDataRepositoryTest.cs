@@ -42,8 +42,8 @@ namespace CardExchangeServiceTests
             configurationMock.Setup(x => x["ImageFileSettings:MaxWidth"]).Returns("300");
             configurationMock.Setup(x => x["ImageFileSettings:MaxHeight"]).Returns("300");
             configurationMock.Setup(x => x["ImageFileSettings:AllowedExtensions"]).Returns(".jpg, .jpeg, .png, .gif");
-            configurationMock.Setup(x => x["ImageFileSettings:ThumbFolder"]).Returns("thumbnails");
-            configurationMock.Setup(x => x["ImageFileSettings:ImagesFolder"]).Returns("images");
+            configurationMock.Setup(x => x["ImageFileSettings:ThumbFolder"]).Returns(@"C:\Src\vswap_cardprovider\src\CardExchangeServiceTests\thumbnails");
+            configurationMock.Setup(x => x["ImageFileSettings:ImagesFolder"]).Returns(@"C:\Src\vswap_cardprovider\src\CardExchangeServiceTests\images");
 
             IRedisClient redisClient = new RedisClient(configurationMock.Object);
             IImageFileService imageFileService = new ImageFileService(configurationMock.Object);
@@ -295,8 +295,6 @@ namespace CardExchangeServiceTests
             await Task.Delay(2000);
 
             await _repository.SaveSubscriber(deviceId1, longitude, latitude1, "displayName1", bse64StringImage1);
-
-            await Task.Delay(2000);
 
             var resImage = await _repository.GetSubscriberImage(deviceId1);
 

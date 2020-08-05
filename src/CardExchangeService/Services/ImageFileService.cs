@@ -17,6 +17,7 @@ namespace CardExchangeService.Services
         private readonly string _allowedExtensions;
         private readonly string _thumbFolder;
         private readonly string _imagesFolder;
+        private readonly string _thumbUrlPathPrefix;
 
         public ImageFileService(IConfiguration config)
         {
@@ -28,6 +29,7 @@ namespace CardExchangeService.Services
             _allowedExtensions = config["ImageFileSettings:AllowedExtensions"];
             _thumbFolder = config["THUMBNAILS_PATH"] ?? config["ImageFileSettings:ThumbFolder"];
             _imagesFolder = config["IMAGES_PATH"] ?? config["ImageFileSettings:ImagesFolder"];
+            _thumbUrlPathPrefix = config["THUMBNAILS_URL_PATH_PREFIX"] ?? config["ImageFileSettings:ThumbUrlPathPrefix"];
         }
 
         public string GetImage(string imagePath)
@@ -45,7 +47,14 @@ namespace CardExchangeService.Services
         {
             if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
             {
-                File.Delete(imagePath);
+                try
+                {
+                    File.Delete(imagePath);
+                }
+                catch (Exception e)
+                {
+                  //TODO: Log error
+                }
             }
         }
 
@@ -189,8 +198,8 @@ namespace CardExchangeService.Services
 
             if (!string.IsNullOrWhiteSpace(filePath))
             {
-                relativPath = Path.GetRelativePath(_thumbFolder, filePath);
-                relativPath = relativPath?.Replace("\\", "/");
+                var filename = Path.GetFileName(filePath);
+                relativPath = _thumbUrlPathPrefix + "/" + filename;
             }
 
             return relativPath;
