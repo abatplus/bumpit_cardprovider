@@ -51,7 +51,7 @@ namespace CardExchangeService.Redis
                                 try
                                 {
                                     thumbnailUrl = !string.IsNullOrWhiteSpace(imageData?.ThumbnailFilePath)
-                                        ? _imageFileService.GetUrlFromPath(imageData?.ThumbnailFilePath)
+                                        ? _imageFileService.GetThumbnailsUrlFromPath(imageData?.ThumbnailFilePath)
                                         : string.Empty;
                                 }
                                 catch (Exception e)
@@ -104,11 +104,11 @@ namespace CardExchangeService.Redis
 
             if (!_deleteTimers.ContainsKey(deviceId))
             {
-                _deleteTimers.TryAdd(deviceId, new DelayTimer(_=> DeleteImages(deviceId), null, _redisKeyExpireTimeout));
+                _deleteTimers.TryAdd(deviceId, new DelayTimer(_ => DeleteImages(deviceId), null, _redisKeyExpireTimeout));
             }
-            
+
             _deleteTimers[deviceId].Invoke();
-            
+
             return await await _redisClient.SetString(deviceId, JsonConvert.SerializeObject(imageData)).ContinueWith(
                x => _redisClient.GeoAdd(longitude, latitude, deviceId));
         }
@@ -132,8 +132,8 @@ namespace CardExchangeService.Redis
         private async void DeleteSubscriberImages(string deviceId)
         {
             var imageData = await GetImageData(deviceId);
-            
-            if(imageData == null)
+
+            if (imageData == null)
                 return;
 
             _imageFileService.DeleteImageFile(imageData.ImageFilePath);
@@ -142,7 +142,7 @@ namespace CardExchangeService.Redis
 
         public async Task<string> GetThumbnailUrl(string deviceId)
         {
-            return _imageFileService.GetUrlFromPath(await GetThumbnailPath(deviceId));
+            return _imageFileService.GetThumbnailsUrlFromPath(await GetThumbnailPath(deviceId));
         }
 
         private async Task<string> GetThumbnailPath(string deviceId)

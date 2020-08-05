@@ -15,8 +15,6 @@ namespace CardExchangeService.Redis
         private readonly int _redisGeoRadius;
         private ConnectionMultiplexer _redis;
 
-        public event KeyDeletedEventHandler KeyDeletedEvent;
-
         private string GetGeoEntryKey()
         {
             return "GeoEntryKey";
@@ -76,7 +74,6 @@ namespace CardExchangeService.Redis
                 if (!key.StartsWith(GetGeoEntryKey()))
                 {
                     await GeoRemove(key);
-                    KeyDeletedEvent?.Invoke(key);
                 }
             }
         }
