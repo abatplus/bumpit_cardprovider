@@ -43,12 +43,25 @@ namespace CardExchangeService.Redis
                             if (!string.IsNullOrWhiteSpace(subscData))
                             {
                                 var imageData = JsonConvert.DeserializeObject<ImageData>(subscData);
+                                string thumbnailUrl = string.Empty;
+                                try
+                                {
+                                    thumbnailUrl = !string.IsNullOrWhiteSpace(imageData?.ThumbnailFilePath)
+                                        ? imageFileService.GetUrlFromPath(imageData?.ThumbnailFilePath)
+                                        : string.Empty;
+                                }
+                                catch (Exception e)
+                                {
+                                    thumbnailUrl = string.Empty;
+                                    //TODO Log error 
+                                }
+
                                 resList.Add(JsonConvert.SerializeObject(
                                     new SubscriptionData()
                                     {
                                         DeviceId = el.Member,
                                         DisplayName = imageData?.DisplayName,
-                                        ThumbnailUrl = imageFileService.GetUrlFromPath(imageData?.ThumbnailFilePath)
+                                        ThumbnailUrl = thumbnailUrl
                                     }
                                 ));
                             }
@@ -74,14 +87,14 @@ namespace CardExchangeService.Redis
             if (!string.IsNullOrEmpty(image))
             {
                 imageFileService.SaveImageToFile(image, out var imageFilePath, out var thumbFilePath);
-                imageData.ImageFilePath = imageFilePath;
-                imageData.ThumbnailFilePath = thumbFilePath;
+                imageData.ImageFilePath = imageFilePath ?? string.Empty;
+                imageData.ThumbnailFilePath = thumbFilePath ?? string.Empty;
             }
             else
             {
                 var serverImageData = await GetImageData(deviceId);
-                imageData.ImageFilePath = serverImageData?.ImageFilePath;
-                imageData.ThumbnailFilePath = serverImageData?.ThumbnailFilePath;
+                imageData.ImageFilePath = serverImageData?.ImageFilePath ?? string.Empty;
+                imageData.ThumbnailFilePath = serverImageData?.ThumbnailFilePath ?? string.Empty;
             }
 
             return await await redisClient.SetString(deviceId, JsonConvert.SerializeObject(imageData)).ContinueWith(
