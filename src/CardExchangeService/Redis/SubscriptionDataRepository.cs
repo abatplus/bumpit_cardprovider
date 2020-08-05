@@ -1,24 +1,28 @@
 ﻿using System;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using CardExchangeService.Services;
+using Microsoft.Extensions.Configuration;
+using System.Collections.Concurrent;
 
 namespace CardExchangeService.Redis
 {
     public class SubscriptionDataRepository : ISubscriptionDataRepository
     {
-        private readonly IRedisClient redisClient;
-        private readonly IImageFileService imageFileService;
+        private readonly IRedisClient _redisClient;
+        private readonly IImageFileService _imageFileService;
 
-        public SubscriptionDataRepository(IRedisClient redisClient, IImageFileService imageFileService)
+        private readonly int _redisKeyExpireTimeout;
+
+        private readonly ConcurrentDictionary<string, DelayTimer> _deleteTimers = new ConcurrentDictionary<string, DelayTimer>();
+
+        public SubscriptionDataRepository(IRedisClient redisClient, IImageFileService imageFileService, IConfiguration config)
         {
-            this.redisClient = redisClient;
-            this.imageFileService = imageFileService;
+            _redisClient = redisClient;
+            _imageFileService = imageFileService;
 
-            //TODO : this solution dont work. the key that stores a path is at that time already deleted
-            //redisClient.KeyDeletedEvent += DeleteSubscriberImages;
+            _redisKeyExpireTimeout = Convert.ToInt32(config["REDIS_KEY_EXPIRE_TIMEOUT"] ?? config["Redis:KeyExpireTimeout_s"]);
         }
 
         public async Task<IList<string>> GetNearestSubscribers(string deviceId)
@@ -32,14 +36,14 @@ namespace CardExchangeService.Redis
 
             try
             {
-                var res = await redisClient.GeoRadiusByMember(deviceId);
+                var res = await _redisClient.GeoRadiusByMember(deviceId);
                 if (res != null)
                 {
                     foreach (var el in res)
                     {
                         if (el.Member != deviceId)
                         {
-                            string subscData = await redisClient.GetString(el.Member);
+                            string subscData = await _redisClient.GetString(el.Member);
                             if (!string.IsNullOrWhiteSpace(subscData))
                             {
                                 var imageData = JsonConvert.DeserializeObject<ImageData>(subscData);
@@ -47,7 +51,7 @@ namespace CardExchangeService.Redis
                                 try
                                 {
                                     thumbnailUrl = !string.IsNullOrWhiteSpace(imageData?.ThumbnailFilePath)
-                                        ? imageFileService.GetUrlFromPath(imageData?.ThumbnailFilePath)
+                                        ? _imageFileService.GetUrlFromPath(imageData?.ThumbnailFilePath)
                                         : string.Empty;
                                 }
                                 catch (Exception e)
@@ -79,14 +83,15 @@ namespace CardExchangeService.Redis
 
         public async Task<bool> SaveSubscriber(string deviceId, double longitude, double latitude, string displayName, string image)
         {
-            ImageData imageData = new ImageData()
+            ImageData imageData = new ImageData
             {
                 DeviceId = deviceId,
                 DisplayName = displayName
             };
+
             if (!string.IsNullOrEmpty(image))
             {
-                imageFileService.SaveImageToFile(image, out var imageFilePath, out var thumbFilePath);
+                _imageFileService.SaveImageToFile(image, out var imageFilePath, out var thumbFilePath);
                 imageData.ImageFilePath = imageFilePath ?? string.Empty;
                 imageData.ThumbnailFilePath = thumbFilePath ?? string.Empty;
             }
@@ -97,29 +102,47 @@ namespace CardExchangeService.Redis
                 imageData.ThumbnailFilePath = serverImageData?.ThumbnailFilePath ?? string.Empty;
             }
 
-            return await await redisClient.SetString(deviceId, JsonConvert.SerializeObject(imageData)).ContinueWith(
-               x => redisClient.GeoAdd(longitude, latitude, deviceId));
+            if (!_deleteTimers.ContainsKey(deviceId))
+            {
+                _deleteTimers.TryAdd(deviceId, new DelayTimer(_=> DeleteImages(deviceId), null, _redisKeyExpireTimeout));
+            }
+            
+            _deleteTimers[deviceId].Invoke();
+            
+            return await await _redisClient.SetString(deviceId, JsonConvert.SerializeObject(imageData)).ContinueWith(
+               x => _redisClient.GeoAdd(longitude, latitude, deviceId));
+        }
+
+        private void DeleteImages(string deviceId)
+        {
+            DeleteSubscriberImages(deviceId);
+
+            _deleteTimers[deviceId].Dispose();
+            _deleteTimers[deviceId] = null;
         }
 
         public async Task<bool> DeleteSubscriber(string deviceId)
         {
             DeleteSubscriberImages(deviceId);
 
-            return await await redisClient.RemoveKey(deviceId).ContinueWith(
-                x => redisClient.GeoRemove(deviceId));
+            return await await _redisClient.RemoveKey(deviceId).ContinueWith(
+                x => _redisClient.GeoRemove(deviceId));
         }
 
         private async void DeleteSubscriberImages(string deviceId)
         {
             var imageData = await GetImageData(deviceId);
+            
+            if(imageData == null)
+                return;
 
-            imageFileService.DeleteImageFile(imageData?.ImageFilePath);
-            imageFileService.DeleteImageFile(imageData?.ThumbnailFilePath);
+            _imageFileService.DeleteImageFile(imageData.ImageFilePath);
+            _imageFileService.DeleteImageFile(imageData.ThumbnailFilePath);
         }
 
         public async Task<string> GetThumbnailUrl(string deviceId)
         {
-            return imageFileService.GetUrlFromPath(await GetThumbnailPath(deviceId));
+            return _imageFileService.GetUrlFromPath(await GetThumbnailPath(deviceId));
         }
 
         private async Task<string> GetThumbnailPath(string deviceId)
@@ -143,7 +166,7 @@ namespace CardExchangeService.Redis
 
             try
             {
-                res = JsonConvert.DeserializeObject<ImageData>(await redisClient.GetString(deviceId));
+                res = JsonConvert.DeserializeObject<ImageData>(await _redisClient.GetString(deviceId));
             }
             catch (Exception e)
             {
@@ -155,7 +178,7 @@ namespace CardExchangeService.Redis
 
         public async Task<string> GetSubscriberImage(string deviceId)
         {
-            return imageFileService.GetImage(await GetImagePath(deviceId));
+            return _imageFileService.GetImage(await GetImagePath(deviceId));
         }
     }
 }
