@@ -17,19 +17,17 @@ namespace CardExchangeService.Services
         private readonly string _allowedExtensions;
         private readonly string _thumbFolder;
         private readonly string _imagesFolder;
-        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ImageFileService(IConfiguration config, IWebHostEnvironment env)
+        public ImageFileService(IConfiguration config)
         {
-            _webHostEnvironment = env;
             _sizeLimitBytes = Convert.ToInt32(config["ImageFileSettings:SizeLimitBytes"]);
             _thumbWidth = Convert.ToInt32(config["ImageFileSettings:ThumbWidth"]);
             _thumbHeight = Convert.ToInt32(config["ImageFileSettings:ThumbHeight"]);
             _maxWidth = Convert.ToInt32(config["ImageFileSettings:MaxWidth"]);
             _maxHeight = Convert.ToInt32(config["ImageFileSettings:MaxHeight"]);
             _allowedExtensions = config["ImageFileSettings:AllowedExtensions"];
-            _thumbFolder = config["ImageFileSettings:ThumbFolder"];
-            _imagesFolder = config["ImageFileSettings:ImagesFolder"];
+            _thumbFolder = config["THUMBNAILS_PATH"] ?? config["ImageFileSettings:ThumbFolder"];
+            _imagesFolder = config["IMAGES_PATH"] ?? config["ImageFileSettings:ImagesFolder"];
         }
 
         public string GetImage(string imagePath)
@@ -105,12 +103,13 @@ namespace CardExchangeService.Services
             thumbnailPath = SaveImageToFile(thumbnailImage, fileExtension, _thumbFolder);
         }
 
-        private string GetImageFilePath(string fileExtension, string imageFolder)
+        private string GetImageFilePath(string fileExtension, string folderPath)
         {
-            var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, imageFolder);
-
             if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
+            {
+                //TODO: log error
+                return string.Empty;
+            }
 
             string filePath = string.Empty;
 
@@ -127,7 +126,10 @@ namespace CardExchangeService.Services
         {
             var filePath = GetImageFilePath(fileExtension, imageFolder);
 
-            File.WriteAllBytes(filePath, img);
+            if (!string.IsNullOrWhiteSpace(filePath))
+            {
+                File.WriteAllBytes(filePath, img);
+            }
 
             return filePath;
         }
@@ -136,7 +138,10 @@ namespace CardExchangeService.Services
         {
             var filePath = GetImageFilePath(fileExtension, imageFolder);
 
-            img.Save(filePath);
+            if (!string.IsNullOrWhiteSpace(filePath))
+            {
+                img.Save(filePath);
+            }
 
             return filePath;
         }
@@ -178,13 +183,13 @@ namespace CardExchangeService.Services
             return thumb;
         }
 
-        public string GetUrlFromPath(string filePath)
+        public string GetThumbnailsUrlFromPath(string filePath)
         {
             string relativPath = string.Empty;
 
             if (!string.IsNullOrWhiteSpace(filePath))
             {
-                relativPath = Path.GetRelativePath(_webHostEnvironment.WebRootPath, filePath);
+                relativPath = Path.GetRelativePath(_thumbFolder, filePath);
                 relativPath = relativPath?.Replace("\\", "/");
             }
 

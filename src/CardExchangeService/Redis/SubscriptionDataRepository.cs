@@ -16,9 +16,6 @@ namespace CardExchangeService.Redis
         {
             this.redisClient = redisClient;
             this.imageFileService = imageFileService;
-
-            //TODO : this solution dont work. the key that stores a path is at that time already deleted
-            //redisClient.KeyDeletedEvent += DeleteSubscriberImages;
         }
 
         public async Task<IList<string>> GetNearestSubscribers(string deviceId)
@@ -47,7 +44,7 @@ namespace CardExchangeService.Redis
                                 try
                                 {
                                     thumbnailUrl = !string.IsNullOrWhiteSpace(imageData?.ThumbnailFilePath)
-                                        ? imageFileService.GetUrlFromPath(imageData?.ThumbnailFilePath)
+                                        ? imageFileService.GetThumbnailsUrlFromPath(imageData?.ThumbnailFilePath)
                                         : string.Empty;
                                 }
                                 catch (Exception e)
@@ -119,7 +116,7 @@ namespace CardExchangeService.Redis
 
         public async Task<string> GetThumbnailUrl(string deviceId)
         {
-            return imageFileService.GetUrlFromPath(await GetThumbnailPath(deviceId));
+            return imageFileService.GetThumbnailsUrlFromPath(await GetThumbnailPath(deviceId));
         }
 
         private async Task<string> GetThumbnailPath(string deviceId)

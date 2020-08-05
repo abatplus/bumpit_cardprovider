@@ -30,7 +30,6 @@ namespace CardExchangeServiceTests
         public SubscriptionDataRepositoryTest()
         {
             Mock<IConfiguration> configurationMock = new Mock<IConfiguration>();
-            Mock<IWebHostEnvironment> webHostEnvironmentMock = new Mock<IWebHostEnvironment>();
 
             configurationMock.Setup(x => x["Redis:Host"]).Returns("localhost");
             configurationMock.Setup(x => x["Redis:Port"]).Returns("6379");
@@ -46,9 +45,8 @@ namespace CardExchangeServiceTests
             configurationMock.Setup(x => x["ImageFileSettings:ThumbFolder"]).Returns("thumbnails");
             configurationMock.Setup(x => x["ImageFileSettings:ImagesFolder"]).Returns("images");
 
-            webHostEnvironmentMock.Setup(x => x.WebRootPath).Returns("wwwroot");
             IRedisClient redisClient = new RedisClient(configurationMock.Object);
-            IImageFileService imageFileService = new ImageFileService(configurationMock.Object, webHostEnvironmentMock.Object);
+            IImageFileService imageFileService = new ImageFileService(configurationMock.Object);
             _repository = new SubscriptionDataRepository(redisClient, imageFileService);
 
             InitTestImageString();
@@ -311,7 +309,7 @@ namespace CardExchangeServiceTests
             imageBytes1.Should().NotBeNull();
             imageBytes2.Should().NotBeNull();
 
-           // File.WriteAllBytes("../../../img/3.jpg", imageBytes1);
+            // File.WriteAllBytes("../../../img/3.jpg", imageBytes1);
 
             imageBytes1.Should().BeEquivalentTo(imageBytes2);
         }
