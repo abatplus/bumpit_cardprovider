@@ -62,7 +62,7 @@ namespace CardExchangeServiceTests
         [Fact]
         public void TestStop()
         {
-            _savedMessage = "";
+            _savedMessage = "TEST_STOP";
 
             using(DelayTimer dt = CreateTimer())
             {                
@@ -73,7 +73,22 @@ namespace CardExchangeServiceTests
                 Thread.Sleep(110); 
             } 
             
-            _savedMessage.Should().Be("");
+            _savedMessage.Should().Be("TEST_STOP");
+        }
+
+        [Fact]
+        public void TestDispose()
+        {
+            _savedMessage = "TEST_DISPOSE";
+
+            using(DelayTimer dt = CreateTimer())
+            {                
+                dt.Invoke("DISPOSE-FAILURE!");
+            } 
+            
+            Thread.Sleep(110); 
+            
+            _savedMessage.Should().Be("TEST_DISPOSE");
         }
     }
 }
