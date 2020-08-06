@@ -106,7 +106,7 @@ namespace CardExchangeService.Redis
 
             if (!_deleteTimers.ContainsKey(deviceId))
             {
-                _deleteTimers.TryAdd(deviceId, new DelayTimer(_ => DeleteImages(deviceId), null, _redisKeyExpireTimeout));
+                _deleteTimers.TryAdd(deviceId, new DelayTimer(_ => DeleteImages(deviceId), null, _redisKeyExpireTimeout * 1000));
             }
 
             _deleteTimers[deviceId].Invoke();
