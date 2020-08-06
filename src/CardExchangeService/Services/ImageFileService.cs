@@ -53,7 +53,8 @@ namespace CardExchangeService.Services
                 }
                 catch (Exception e)
                 {
-                  //TODO: Log error
+                    Console.WriteLine(e);
+                    //TODO: Log error
                 }
             }
         }
@@ -137,7 +138,16 @@ namespace CardExchangeService.Services
 
             if (!string.IsNullOrWhiteSpace(filePath))
             {
-                File.WriteAllBytes(filePath, img);
+                try
+                {
+
+                    File.WriteAllBytes(filePath, img);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                   //TODO Logerror
+                }
             }
 
             return filePath;
