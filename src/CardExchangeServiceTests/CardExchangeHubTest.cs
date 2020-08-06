@@ -21,7 +21,7 @@ namespace CardExchangeServiceTests
         private string bse64StringImage1;
         private string bse64StringImage2;
 
-        // private const string connectionUrl = "https://vswap-dev.smef.io/swaphub";
+       // private const string connectionUrl = "https://vswap-dev.smef.io/swaphub";
         private const string connectionUrl = "http://localhost:5000/swaphub";
 
         public CardExchangeHubTest()
@@ -101,10 +101,12 @@ namespace CardExchangeServiceTests
                 }
             });
 
+            await Task.Delay(2000);
+
             await connection1.SendAsync("Update", deviceId1, longitude, latitude1, "displayName1");
             await connection2.SendAsync("Update", deviceId2, longitude, latitudeIn2, "displayName2");
 
-            await Task.Delay(2000);
+            await Task.Delay(8000);
 
             isSubscribedCalled1.Should().BeTrue();
             isUpdatedCalled1.Should().BeTrue();
@@ -267,7 +269,7 @@ namespace CardExchangeServiceTests
                 connection2.SendAsync("Update", deviceId2, longitude, latitudeIn2, "displayName2");
             }
 
-            await Task.Delay(2000);
+            await Task.Delay(8000);
 
             iCallUpdate1.Should().Be(50);
             isSubscribedCalled1.Should().BeTrue();
@@ -435,7 +437,7 @@ namespace CardExchangeServiceTests
             await connection1.SendAsync("RequestCardExchange", deviceId1, deviceId2, "displayName1");
             await connection2.SendAsync("RequestCardExchange", deviceId2, deviceId1, "displayName2");
 
-            await Task.Delay(2000);
+            await Task.Delay(8000);
 
             //Asserts
             deviceIdReqCon1.Should().Be(deviceId2);
@@ -554,7 +556,7 @@ namespace CardExchangeServiceTests
             await connection1.SendAsync("RequestCardExchange", deviceId1, deviceId2, "displayName1");
             await connection2.SendAsync("RequestCardExchange", deviceId2, deviceId1, "displayName2");
 
-            await Task.Delay(2000);
+            await Task.Delay(8000);
 
             //Asserts
             deviceIdReqCon1.Should().Be(deviceId2);
