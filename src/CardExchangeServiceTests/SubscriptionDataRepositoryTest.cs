@@ -49,7 +49,7 @@ namespace CardExchangeServiceTests
             webHostEnvironmentMock.Setup(x => x.WebRootPath).Returns("wwwroot");
             IRedisClient redisClient = new RedisClient(configurationMock.Object);
             IImageFileService imageFileService = new ImageFileService(configurationMock.Object, webHostEnvironmentMock.Object);
-            _repository = new SubscriptionDataRepository(redisClient, imageFileService);
+            _repository = new SubscriptionDataRepository(redisClient, imageFileService, configurationMock.Object);
 
             InitTestImageString();
         }
