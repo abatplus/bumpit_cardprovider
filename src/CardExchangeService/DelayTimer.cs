@@ -31,6 +31,8 @@ namespace CardExchangeService
 
         public void InvokeDirect(object state = null) 
         {
+            StopTimer();
+            
             ExecuteCallback(state?? _state);
         }
 

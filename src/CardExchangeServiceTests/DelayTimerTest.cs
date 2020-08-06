@@ -20,6 +20,12 @@ namespace CardExchangeServiceTests
                 dt.InvokeDirect();
                 
                 _savedMessage.Should().Be("INIT");
+
+                dt.Invoke("TIMED-FAILURE");
+                Thread.Sleep(50);
+                dt.InvokeDirect("DIRECT");
+    
+                _savedMessage.Should().Be("DIRECT");
             }
         }
 
