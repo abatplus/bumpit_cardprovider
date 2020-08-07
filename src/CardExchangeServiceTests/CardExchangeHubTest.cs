@@ -21,8 +21,8 @@ namespace CardExchangeServiceTests
         private string bse64StringImage1;
         private string bse64StringImage2;
 
-       // private const string connectionUrl = "https://vswap-dev.smef.io/swaphub";
-        private const string connectionUrl = "http://localhost:5000/swaphub";
+       private const string connectionUrl = "https://vswap-dev.smef.io/swaphub";
+       // private const string connectionUrl = "http://localhost:5000/swaphub";
 
         public CardExchangeHubTest()
         {
