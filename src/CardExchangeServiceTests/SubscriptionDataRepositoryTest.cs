@@ -33,7 +33,7 @@ namespace CardExchangeServiceTests
 
             configurationMock.Setup(x => x["Redis:Host"]).Returns("localhost");
             configurationMock.Setup(x => x["Redis:Port"]).Returns("6379");
-            configurationMock.Setup(x => x["Redis:GeoRadius_m"]).Returns("5");
+            configurationMock.Setup(x => x["Redis:GeoRadius_m"]).Returns("25");
             configurationMock.Setup(x => x["Redis:KeyExpireTimeout_s"]).Returns("5");
 
             configurationMock.Setup(x => x["ImageFileSettings:SizeLimitBytes"]).Returns("2097152");

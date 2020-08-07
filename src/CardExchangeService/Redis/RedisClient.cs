@@ -59,6 +59,7 @@ namespace CardExchangeService.Redis
             }
             catch (RedisConnectionException err)
             {
+                Console.WriteLine(err);
                 throw err;
             }
         }
