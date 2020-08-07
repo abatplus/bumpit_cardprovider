@@ -2,7 +2,6 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 
 namespace CardExchangeService.Services
@@ -34,13 +33,25 @@ namespace CardExchangeService.Services
 
         public string GetImage(string imagePath)
         {
-            if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
+            try
             {
-                byte[] imageArray = File.ReadAllBytes(imagePath);
-                return @"data:image/" + Path.GetExtension(imagePath) + ";base64" + "," + Convert.ToBase64String(imageArray);
+                if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
+                {
+                    byte[] imageArray = File.ReadAllBytes(imagePath);
+                    return @"data:image/" + Path.GetExtension(imagePath) + ";base64" + "," + Convert.ToBase64String(imageArray);
+                }
+                else
+                {
+                    Console.WriteLine("GetImage: Image path is empty or not exists:" + imagePath);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
             }
 
-            return String.Empty;
+            return string.Empty;
         }
 
         public void DeleteImageFile(string imagePath)
@@ -55,7 +66,12 @@ namespace CardExchangeService.Services
                 {
                     Console.WriteLine(e);
                     //TODO: Log error
+                    throw;
                 }
+            }
+            else
+            {
+                Console.WriteLine("DeleteImageFile: Image path is empty or not exists:" + imagePath);
             }
         }
 
@@ -77,47 +93,64 @@ namespace CardExchangeService.Services
         {
             imagePath = string.Empty;
             thumbnailPath = string.Empty;
-            //data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABA...
-            var imageInfo = base64StringImage.Split(',');
-
-            if (imageInfo.Length < 2)
-                return;
-
-            string fileExtension = GetFileExtension(imageInfo[0]);
-            if (!string.IsNullOrWhiteSpace(fileExtension) && fileExtension.IndexOf('.') < 0)
+            try
             {
-                fileExtension = "." + fileExtension;
+                //data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABA...
+                var imageInfo = base64StringImage.Split(',');
+
+                if (imageInfo.Length < 2)
+                    return;
+
+                string fileExtension = GetFileExtension(imageInfo[0]);
+                if (!string.IsNullOrWhiteSpace(fileExtension) && fileExtension.IndexOf('.') < 0)
+                {
+                    fileExtension = "." + fileExtension;
+                }
+
+                byte[] bytes = Convert.FromBase64String(imageInfo[1]);
+
+                if (!ValidateExtension(fileExtension))
+                {
+                    Console.WriteLine("SaveImageToFile: File extension is not valid  " + fileExtension);
+                    return;
+                }
+
+                if (!ValidateFileSize(bytes))
+                {
+                    Console.WriteLine("SaveImageToFile: File size is not valid  " + bytes.Length);
+                    return;
+                }
+
+                Image image;
+                using (MemoryStream ms = new MemoryStream(bytes))
+                {
+                    image = Image.FromStream(ms);
+                }
+
+                if (!ValidateImageSize(image))
+                {
+                    Console.WriteLine("SaveImageToFile: Image size is not valid width " + image.Width + ", height " + image.Height);
+                    return;
+                }
+
+                var thumbnailImage = CreateThumbnailImage(image);
+
+                imagePath = SaveImageToFile(bytes, fileExtension, _imagesFolder);
+
+                thumbnailPath = SaveImageToFile(thumbnailImage, fileExtension, _thumbFolder);
             }
-
-            byte[] bytes = Convert.FromBase64String(imageInfo[1]);
-
-            if (!ValidateExtension(fileExtension))
-                return;
-
-            if (!ValidateFileSize(bytes))
-                return;
-
-            Image image;
-            using (MemoryStream ms = new MemoryStream(bytes))
+            catch (Exception e)
             {
-                image = Image.FromStream(ms);
+                Console.WriteLine(e);
+                throw;
             }
-
-            if (!ValidateImageSize(image))
-                return;
-
-            var thumbnailImage = CreateThumbnailImage(image);
-
-            imagePath = SaveImageToFile(bytes, fileExtension, _imagesFolder);
-
-            thumbnailPath = SaveImageToFile(thumbnailImage, fileExtension, _thumbFolder);
         }
 
         private string GetImageFilePath(string fileExtension, string folderPath)
         {
             if (!Directory.Exists(folderPath))
             {
-                //TODO: log error
+                Console.WriteLine("GetImageFilePath: Image directory " + folderPath + " not Exists");
                 return string.Empty;
             }
 
@@ -140,15 +173,18 @@ namespace CardExchangeService.Services
             {
                 try
                 {
-
                     File.WriteAllBytes(filePath, img);
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e);
-                   //TODO Logerror
                 }
             }
+            else
+            {
+                Console.WriteLine("SaveImageToFile: Image file path is empty");
+            }
+
 
             return filePath;
         }
@@ -160,6 +196,10 @@ namespace CardExchangeService.Services
             if (!string.IsNullOrWhiteSpace(filePath))
             {
                 img.Save(filePath);
+            }
+            else
+            {
+                Console.WriteLine("SaveImageToFile: Image file path is empty");
             }
 
             return filePath;
@@ -210,6 +250,10 @@ namespace CardExchangeService.Services
             {
                 var filename = Path.GetFileName(filePath);
                 relativPath = _thumbUrlPathPrefix + "/" + filename;
+            }
+            else
+            {
+                Console.WriteLine("GetThumbnailsUrlFromPath: file path is empty");
             }
 
             return relativPath;
