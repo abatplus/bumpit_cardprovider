@@ -3,9 +3,11 @@ using CardExchangeService.Services;
 using CardExchangeService.Tests;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 
 namespace CardExchangeService
 {
@@ -50,6 +52,42 @@ namespace CardExchangeService
             {
                 endpoints.MapControllers();
                 endpoints.MapHub<CardExchangeHub>("/swaphub");
+                endpoints.MapGet("/thumbnails/{name}", async context =>
+                {
+                    try
+                    {
+                        var name = context.Request.RouteValues["name"];
+                        if (name.ToString().Contains(".."))
+                        {
+                            throw new Exception();
+                        }
+                        String filename = $"thumbnails/{name}";
+                        await context.Response.SendFileAsync(filename);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.Write(e.ToString());
+                        await context.Response.WriteAsync("Error");
+                    }
+                });
+                endpoints.MapGet("/images/{name}", async context =>
+                {
+                    try
+                    {
+                        var name = context.Request.RouteValues["name"];
+                        if (name.ToString().Contains(".."))
+                        {
+                            throw new Exception();
+                        }
+                        String filename = $"images/{name}";
+                        await context.Response.SendFileAsync(filename);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.Write(e.ToString());
+                        await context.Response.WriteAsync("Error");
+                    }
+                });
             });
         }
     }
