@@ -74,7 +74,8 @@ namespace CardExchangeService
                      }
                      catch (Exception e)
                      {
-                         Console.Write(DateTime.Now.ToString("MM/dd/yyyy") + ": " + e.ToString());
+                         Console.Write(e.ToString());
+                         context.Response.StatusCode = 404;
                          await context.Response.WriteAsync("Error");
                      }
                  });
@@ -93,7 +94,8 @@ namespace CardExchangeService
                       }
                       catch (Exception e)
                       {
-                          Console.Write(DateTime.Now.ToString("MM/dd/yyyy") + ": " + e.ToString());
+                          Console.Write(e.ToString());
+                          context.Response.StatusCode = 404;
                           await context.Response.WriteAsync("Error");
                       }
                   });
