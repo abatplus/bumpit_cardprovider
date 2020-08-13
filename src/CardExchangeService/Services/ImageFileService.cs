@@ -42,12 +42,12 @@ namespace CardExchangeService.Services
                 }
                 else
                 {
-                    Console.WriteLine("GetImage: Image path is empty or not exists:" + imagePath);
+                    Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy") + ": " + "GetImage: Image path is empty or not exists:" + imagePath);
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy") + ": " + e);
                 throw;
             }
 
@@ -64,14 +64,14 @@ namespace CardExchangeService.Services
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy") + ": " + e);
                     //TODO: Log error
                     throw;
                 }
             }
             else
             {
-                Console.WriteLine("DeleteImageFile: Image path is empty or not exists:" + imagePath);
+                Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy") + ": " + "DeleteImageFile: Image path is empty or not exists:" + imagePath);
             }
         }
 
@@ -111,13 +111,13 @@ namespace CardExchangeService.Services
 
                 if (!ValidateExtension(fileExtension))
                 {
-                    Console.WriteLine("SaveImageToFile: File extension is not valid  " + fileExtension);
+                    Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy") + ": " + "SaveImageToFile: File extension is not valid  " + fileExtension);
                     return;
                 }
 
                 if (!ValidateFileSize(bytes))
                 {
-                    Console.WriteLine("SaveImageToFile: File size is not valid  " + bytes.Length);
+                    Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy") + ": " + "SaveImageToFile: File size is not valid  " + bytes.Length);
                     return;
                 }
 
@@ -129,7 +129,7 @@ namespace CardExchangeService.Services
 
                 if (!ValidateImageSize(image))
                 {
-                    Console.WriteLine("SaveImageToFile: Image size is not valid width " + image.Width + ", height " + image.Height);
+                    Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy") + ": " + "SaveImageToFile: Image size is not valid width " + image.Width + ", height " + image.Height);
                     return;
                 }
 
@@ -141,7 +141,7 @@ namespace CardExchangeService.Services
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy") + ": " + e);
                 throw;
             }
         }
@@ -150,8 +150,15 @@ namespace CardExchangeService.Services
         {
             if (!Directory.Exists(folderPath))
             {
-                Console.WriteLine("GetImageFilePath: Image directory " + folderPath + " not Exists");
-                return string.Empty;
+                try
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy") + ": " + e);
+                    return String.Empty;
+                }
             }
 
             string filePath = string.Empty;
@@ -177,12 +184,12 @@ namespace CardExchangeService.Services
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy") + ": " + e);
                 }
             }
             else
             {
-                Console.WriteLine("SaveImageToFile: Image file path is empty");
+                Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy") + ": " + "SaveImageToFile: Image file path is empty");
             }
 
 
@@ -199,7 +206,7 @@ namespace CardExchangeService.Services
             }
             else
             {
-                Console.WriteLine("SaveImageToFile: Image file path is empty");
+                Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy") + ": " + "SaveImageToFile: Image file path is empty");
             }
 
             return filePath;
@@ -253,7 +260,7 @@ namespace CardExchangeService.Services
             }
             else
             {
-                Console.WriteLine("GetThumbnailsUrlFromPath: file path is empty");
+                Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy") + ": " + "GetThumbnailsUrlFromPath: file path is empty");
             }
 
             return relativPath;

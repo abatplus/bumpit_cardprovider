@@ -56,7 +56,7 @@ namespace CardExchangeService.Redis
                                 }
                                 catch (Exception e)
                                 {
-                                    Console.WriteLine(e);
+                                    Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy") + ": " + e);
                                     thumbnailUrl = string.Empty;
                                     //TODO Log error 
                                 }
@@ -76,7 +76,7 @@ namespace CardExchangeService.Redis
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy") + ": " + e);
                 //TODO Log error 
             }
 
@@ -172,7 +172,7 @@ namespace CardExchangeService.Redis
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy") + ": " + e);
                 //TODO Log error 
             }
 
