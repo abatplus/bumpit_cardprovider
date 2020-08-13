@@ -69,7 +69,7 @@ namespace CardExchangeService
                              throw new Exception();
                          }
 
-                         String filename = Path.GetFullPath(thumbPath) + $"\\{name}";
+                         String filename = Path.GetFullPath(thumbPath) + Path.DirectorySeparatorChar + name;
                          await context.Response.SendFileAsync(filename);
                      }
                      catch (Exception e)
@@ -88,8 +88,8 @@ namespace CardExchangeService
                           {
                               throw new Exception();
                           }
-                         
-                          String filename = Path.GetFullPath(imgPath) + $"\\{name}";
+
+                          String filename = Path.GetFullPath(imgPath) + Path.DirectorySeparatorChar + name;
                           await context.Response.SendFileAsync(filename);
                       }
                       catch (Exception e)
