@@ -67,6 +67,7 @@ namespace CardExchangeService
                     catch (Exception e)
                     {
                         Console.Write(e.ToString());
+                        context.Response.StatusCode = 404;
                         await context.Response.WriteAsync("Error");
                     }
                 });
@@ -85,6 +86,7 @@ namespace CardExchangeService
                     catch (Exception e)
                     {
                         Console.Write(e.ToString());
+                        context.Response.StatusCode = 404;
                         await context.Response.WriteAsync("Error");
                     }
                 });
