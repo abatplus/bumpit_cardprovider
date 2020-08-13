@@ -59,7 +59,7 @@ namespace CardExchangeService.Redis
             }
             catch (RedisConnectionException err)
             {
-                Console.WriteLine(DateTime.Now.ToString("MM/dd/yyyy")+": " + err);
+                Console.WriteLine(err);
                 throw err;
             }
         }
