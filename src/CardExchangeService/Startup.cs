@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using System.IO;
 
 namespace CardExchangeService
 {
@@ -48,48 +49,56 @@ namespace CardExchangeService
 
             app.UseAuthorization();
 
+
+            string thumbUrlPathPrefix = Configuration["THUMBNAILS_URL_PATH_PREFIX"] ?? Configuration["ImageFileSettings:ThumbUrlPathPrefix"];
+            string thumbPath = Configuration["THUMBNAILS_PATH"] ?? Configuration["ImageFileSettings:ThumbFolder"];
+            string imgsUrlPathPrefix = Configuration["IMAGES_URL_PATH_PREFIX"] ?? Configuration["ImageFileSettings:ImgUrlPathPrefix"];
+            string imgPath = Configuration["IMAGES_PATH"] ?? Configuration["ImageFileSettings:ImagesFolder"];
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
                 endpoints.MapHub<CardExchangeHub>("/swaphub");
-                endpoints.MapGet("/thumbnails/{name}", async context =>
-                {
-                    try
-                    {
-                        var name = context.Request.RouteValues["name"];
-                        if (name.ToString().Contains(".."))
-                        {
-                            throw new Exception();
-                        }
-                        String filename = $"thumbnails/{name}";
-                        await context.Response.SendFileAsync(filename);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.Write(e.ToString());
-                        context.Response.StatusCode = 404;
-                        await context.Response.WriteAsync("Error");
-                    }
-                });
-                endpoints.MapGet("/images/{name}", async context =>
-                {
-                    try
-                    {
-                        var name = context.Request.RouteValues["name"];
-                        if (name.ToString().Contains(".."))
-                        {
-                            throw new Exception();
-                        }
-                        String filename = $"images/{name}";
-                        await context.Response.SendFileAsync(filename);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.Write(e.ToString());
-                        context.Response.StatusCode = 404;
-                        await context.Response.WriteAsync("Error");
-                    }
-                });
+                endpoints.MapGet(thumbUrlPathPrefix + "/{name}", async context =>
+                 {
+                     try
+                     {
+                         var name = context.Request.RouteValues["name"];
+                         if (name.ToString().Contains(".."))
+                         {
+                             throw new Exception();
+                         }
+
+                         String filename = Path.GetFullPath(thumbPath) + $"\\{name}";
+                         await context.Response.SendFileAsync(filename);
+                     }
+                     catch (Exception e)
+                     {
+                         Console.Write(e.ToString());
+                         context.Response.StatusCode = 404;
+                         await context.Response.WriteAsync("Error");
+                     }
+                 });
+                endpoints.MapGet(imgsUrlPathPrefix + "/{name}", async context =>
+                  {
+                      try
+                      {
+                          var name = context.Request.RouteValues["name"];
+                          if (name.ToString().Contains(".."))
+                          {
+                              throw new Exception();
+                          }
+                         
+                          String filename = Path.GetFullPath(imgPath) + $"\\{name}";
+                          await context.Response.SendFileAsync(filename);
+                      }
+                      catch (Exception e)
+                      {
+                          Console.Write(e.ToString());
+                          context.Response.StatusCode = 404;
+                          await context.Response.WriteAsync("Error");
+                      }
+                  });
             });
         }
     }

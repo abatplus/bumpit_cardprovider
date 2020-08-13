@@ -150,8 +150,15 @@ namespace CardExchangeService.Services
         {
             if (!Directory.Exists(folderPath))
             {
-                Console.WriteLine("GetImageFilePath: Image directory " + folderPath + " not Exists");
-                return string.Empty;
+                try
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    return String.Empty;
+                }
             }
 
             string filePath = string.Empty;
