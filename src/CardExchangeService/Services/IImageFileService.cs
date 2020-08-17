@@ -8,6 +8,6 @@
 
         void DeleteImageFile(string imagePath);
 
-        string GetThumbnailsUrlFromPath(string filePath);
+        string GetUrlFromPath(string filePath, string urlPathPrefix);
     }
 }

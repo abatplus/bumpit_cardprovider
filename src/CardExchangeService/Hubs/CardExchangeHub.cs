@@ -46,13 +46,13 @@ namespace CardExchangeService
 
         public async Task AcceptCardExchange(string deviceId, string peerDeviceId, string peerDisplayName, string peerCardData)
         {
-            await Clients.Group(deviceId).CardExchangeAccepted(peerDeviceId, peerDisplayName, peerCardData, await _repository.GetSubscriberImage(peerDeviceId))
+            await Clients.Group(deviceId).CardExchangeAccepted(peerDeviceId, peerDisplayName, peerCardData, await _repository.GetImageUrl(peerDeviceId))
             .ContinueWith(_ => Clients.Caller.AcceptanceSent(deviceId));
         }
 
         public async Task SendCardData(string deviceId, string peerDeviceId, string displayName, string cardData)
         {
-            await Clients.Group(peerDeviceId).CardDataReceived(deviceId, displayName, cardData, await _repository.GetSubscriberImage(deviceId))
+            await Clients.Group(peerDeviceId).CardDataReceived(deviceId, displayName, cardData, await _repository.GetImageUrl(deviceId))
             .ContinueWith(_ => Clients.Caller.CardDataSent(peerDeviceId));
         }
     }
