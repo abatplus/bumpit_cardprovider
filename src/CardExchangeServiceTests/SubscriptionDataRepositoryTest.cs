@@ -201,6 +201,12 @@ namespace CardExchangeServiceTests
             data.DeviceId.Should().Be(DeviceId2);
             data.DisplayName.Should().Be("displayName2");
             data.ThumbnailUrl.Should().NotBeNullOrEmpty();
+
+            await Task.Delay(5000);
+
+            list = await _repository.GetNearestSubscribers(DeviceId1);
+            list.Should().NotBeNull();
+            list.Count.Should().Be(0);
         }
 
         [Fact]
@@ -385,6 +391,51 @@ namespace CardExchangeServiceTests
             var resImageUrl = await _repository.GetImageUrl(DeviceId2);
 
             resImageUrl.Should().NotBeNullOrEmpty();
+        }
+
+        [Fact]
+        public async void Add2SubscriptionsWithImage_Subscribe_Update_Ok()
+        {
+            await _repository.DeleteSubscriber(DeviceId1).ContinueWith(x => _repository.DeleteSubscriber(DeviceId2))
+                .ContinueWith(x => _repository.DeleteSubscriber(DeviceId3));
+
+            await Task.Delay(2000);
+
+            //Subscribe
+            await _repository.SaveSubscriber(DeviceId1, Longitude, Latitude1, "displayName1", _bse64StringImage1)
+                .ContinueWith(x => _repository.SaveSubscriber(DeviceId2, Longitude, LatitudeIn2, "displayName2", _bse64StringImage2));
+
+            await Task.Delay(2000);
+
+            //Update
+            await _repository.SaveSubscriber(DeviceId1, Longitude, Latitude1, "displayName1", null)
+                .ContinueWith(x => _repository.SaveSubscriber(DeviceId2, Longitude, LatitudeIn2, "displayName2", null));
+
+            await Task.Delay(2000);
+
+            var list1 = await _repository.GetNearestSubscribers(DeviceId1);
+            var list2 = await _repository.GetNearestSubscribers(DeviceId2);
+
+            list1.Should().NotBeNull();
+            list1.Count.Should().Be(1);
+            list2.Should().NotBeNull();
+            list2.Count.Should().Be(1);
+
+            var data1 = JsonConvert.DeserializeObject<SubscriptionData>(list1[0]);
+            data1.Should().NotBeNull();
+            data1.Latitude.Should().Be(0);
+            data1.Longitute.Should().Be(0);
+            data1.DeviceId.Should().Be(DeviceId2);
+            data1.DisplayName.Should().Be("displayName2");
+            data1.ThumbnailUrl.Should().NotBeNullOrEmpty();
+
+            var data2 = JsonConvert.DeserializeObject<SubscriptionData>(list2[0]);
+            data2.Should().NotBeNull();
+            data2.Latitude.Should().Be(0);
+            data2.Longitute.Should().Be(0);
+            data2.DeviceId.Should().Be(DeviceId1);
+            data2.DisplayName.Should().Be("displayName1");
+            data2.ThumbnailUrl.Should().NotBeNullOrEmpty();
         }
         #endregion
     }
