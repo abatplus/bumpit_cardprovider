@@ -15,6 +15,9 @@ namespace CardExchangeService.Redis
 
         private readonly int _redisKeyExpireTimeout;
 
+        private readonly string _thumbUrlPathPrefix;
+        private readonly string _imgUrlPathPrefix;
+
         private readonly ConcurrentDictionary<string, DelayTimer> _deleteTimers = new ConcurrentDictionary<string, DelayTimer>();
 
         public SubscriptionDataRepository(IRedisClient redisClient, IImageFileService imageFileService, IConfiguration config)
@@ -23,6 +26,8 @@ namespace CardExchangeService.Redis
             _imageFileService = imageFileService;
 
             _redisKeyExpireTimeout = Convert.ToInt32(config["REDIS_KEY_EXPIRE_TIMEOUT"] ?? config["Redis:KeyExpireTimeout_s"]);
+            _thumbUrlPathPrefix = config["THUMBNAILS_URL_PATH_PREFIX"] ?? config["ImageFileSettings:ThumbUrlPathPrefix"];
+            _imgUrlPathPrefix = config["IMAGES_URL_PATH_PREFIX"] ?? config["ImageFileSettings:ImgUrlPathPrefix"];
         }
 
         public async Task<IList<string>> GetNearestSubscribers(string deviceId)
@@ -51,7 +56,7 @@ namespace CardExchangeService.Redis
                                 try
                                 {
                                     thumbnailUrl = !string.IsNullOrWhiteSpace(imageData?.ThumbnailFilePath)
-                                        ? _imageFileService.GetThumbnailsUrlFromPath(imageData?.ThumbnailFilePath)
+                                        ? _imageFileService.GetUrlFromPath(imageData?.ThumbnailFilePath, _thumbUrlPathPrefix)
                                         : string.Empty;
                                 }
                                 catch (Exception e)
@@ -144,7 +149,12 @@ namespace CardExchangeService.Redis
 
         public async Task<string> GetThumbnailUrl(string deviceId)
         {
-            return _imageFileService.GetThumbnailsUrlFromPath(await GetThumbnailPath(deviceId));
+            return _imageFileService.GetUrlFromPath(await GetThumbnailPath(deviceId), _thumbUrlPathPrefix);
+        }
+
+        public async Task<string> GetImageUrl(string deviceId)
+        {
+            return _imageFileService.GetUrlFromPath(await GetImagePath(deviceId), _imgUrlPathPrefix);
         }
 
         private async Task<string> GetThumbnailPath(string deviceId)

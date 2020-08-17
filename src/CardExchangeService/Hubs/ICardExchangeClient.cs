@@ -16,10 +16,10 @@ namespace CardExchangeService
     Task CardExchangeRequestRevoked(string deviceId);
     Task RevokeSent(string peerDeviceId);
 
-    Task CardExchangeAccepted(string peerDeviceId, string peerDisplayName, string peerCardData, string peerImage);
+    Task CardExchangeAccepted(string peerDeviceId, string peerDisplayName, string peerCardData, string peerImageUrl);
     Task AcceptanceSent(string deviceId);
 
-    Task CardDataReceived(string deviceId, string displayName, string cardData, string image);
+    Task CardDataReceived(string deviceId, string displayName, string cardData, string imageUrl);
     Task CardDataSent(string peerDeviceId);
   }
 }
