@@ -8,6 +8,8 @@ using Newtonsoft.Json;
 using FluentAssertions;
 using System.Threading.Tasks;
 using System.IO;
+using System.Net.Http;
+using System.Threading;
 
 namespace CardExchangeServiceTests
 {
@@ -21,11 +23,16 @@ namespace CardExchangeServiceTests
         private string _bse64StringImage1;
         private string _bse64StringImage2;
 
-        private const string connectionUrl = "https://vswap-dev.smef.io/swaphub";
-        // private const string connectionUrl = "http://localhost:5000/swaphub";
+        private readonly HttpClient httpClient;
+
+        private readonly string connectionUrl;
+        // private const string host = "https://vswap-dev.smef.io";
+        private const string host = "http://localhost:5000";
 
         public CardExchangeHubTest()
         {
+            connectionUrl = host + "/swaphub";
+            httpClient = new HttpClient();
             InitTestImageString();
         }
         private void InitTestImageString()
@@ -35,6 +42,21 @@ namespace CardExchangeServiceTests
             bytes = File.ReadAllBytes("../../../img/2.jpg");
             _bse64StringImage2 = @"data:image/jpg;base64," + Convert.ToBase64String(bytes);
         }
+        private byte[] GetImageBytes(string bse64StringImage)
+        {
+            var imageInfo = bse64StringImage.Split(',');
+
+            if (imageInfo.Length < 2)
+                return null;
+
+            return Convert.FromBase64String(imageInfo[1]);
+        }
+
+        private async Task<byte[]> CallGetRequest(string relUrl)
+        {
+            return await httpClient.GetByteArrayAsync(host + relUrl);
+        }
+
 
         private HubConnection CreateConnection()
         {
@@ -108,6 +130,11 @@ namespace CardExchangeServiceTests
 
             await Task.Delay(2000);
 
+            await connection1.SendAsync("Update", DeviceId1, Longitude, Latitude1, "displayName1");
+            await connection2.SendAsync("Update", DeviceId2, Longitude, LatitudeIn2, "displayName2");
+
+            await Task.Delay(2000);
+
             isSubscribedCalled1.Should().BeTrue();
             isUpdatedCalled1.Should().BeTrue();
             resPeers1.Should().NotBeNull();
@@ -131,6 +158,76 @@ namespace CardExchangeServiceTests
             data2.DeviceId.Should().Be(DeviceId1);
             data2.DisplayName.Should().Be("displayName1");
             data2.ThumbnailUrl.Should().NotBeNullOrEmpty();
+
+            var getBytes = await CallGetRequest(data1.ThumbnailUrl);
+            //var sendBytes = GetImageBytes(_bse64StringImage2);
+            File.WriteAllBytes("../../../img/3.jpg", getBytes);
+            // getBytes.Should().BeEquivalentTo(sendBytes);
+
+            getBytes = await CallGetRequest(data2.ThumbnailUrl);
+            //var sendBytes = GetImageBytes(_bse64StringImage2);
+            File.WriteAllBytes("../../../img/4.jpg", getBytes);
+        }
+
+        [Fact]
+        public async void ConnectionTest_Subscribe2Subscribers_SubscribedCalled()
+        {
+            var connection1 = CreateConnection();
+            var connection2 = CreateConnection();
+
+            bool isSubscribedCalled1 = false;
+            IEnumerable<string> resPeers1 = new List<string>();
+            connection1.On(nameof(ICardExchangeClient.Subscribed), (IEnumerable<string> peers) =>
+            {
+                isSubscribedCalled1 = true;
+                resPeers1 = peers;
+            });
+
+            bool isSubscribedCalled2 = false;
+            IEnumerable<string> resPeers2 = new List<string>();
+            connection2.On(nameof(ICardExchangeClient.Subscribed), (IEnumerable<string> peers) =>
+            {
+                isSubscribedCalled2 = true;
+                resPeers2 = peers;
+            });
+
+            await connection1.StartAsync().ContinueWith(async x =>
+            {
+                if (connection1.State == HubConnectionState.Connected)
+                {
+                    await connection1.SendAsync("Subscribe", DeviceId1, Longitude, Latitude1, "displayName1", _bse64StringImage1);
+                }
+            });
+
+            await Task.Delay(1000);
+
+            await connection2.StartAsync().ContinueWith(async x =>
+            {
+                if (connection2.State == HubConnectionState.Connected)
+                {
+                    await connection2.SendAsync("Subscribe", DeviceId2, Longitude, LatitudeIn2, "displayName2", _bse64StringImage2);
+                }
+            });
+
+            await Task.Delay(3000);
+
+            isSubscribedCalled1.Should().BeTrue();
+            resPeers1.Should().NotBeNull();
+            resPeers1.Count().Should().Be(0);
+
+            isSubscribedCalled2.Should().BeTrue();
+            resPeers2.Should().NotBeNull();
+            resPeers2.Count().Should().Be(1);
+            var data2 = JsonConvert.DeserializeObject<SubscriptionData>(((List<string>)resPeers2)[0]);
+            data2.Should().NotBeNull();
+            data2.Latitude.Should().Be(0);
+            data2.Longitute.Should().Be(0);
+            data2.DeviceId.Should().Be(DeviceId1);
+            data2.DisplayName.Should().Be("displayName1");
+            data2.ThumbnailUrl.Should().NotBeNullOrEmpty();
+
+            var getBytes = await CallGetRequest(data2.ThumbnailUrl);
+            File.WriteAllBytes("../../../img/4.jpg", getBytes);
         }
 
         [Fact]

@@ -31,7 +31,7 @@ namespace CardExchangeService
             {
                 conf.MaximumReceiveMessageSize = null;
             });
-            services.AddTransient<ISubscriptionDataRepository, SubscriptionDataRepository>();
+            services.AddSingleton<ISubscriptionDataRepository, SubscriptionDataRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

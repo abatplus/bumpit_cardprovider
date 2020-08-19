@@ -116,8 +116,10 @@ namespace CardExchangeServiceTests
         {
             _savedMessage = "CALLBACK";
 
-            _deleteTimers[key].Dispose();
-            _deleteTimers[key] = null;
+            if (_deleteTimers.TryRemove(key, out var delay))
+            {
+                delay?.Dispose();
+            }
         }
 
 
