@@ -242,6 +242,85 @@ namespace CardExchangeServiceTests
         }
 
         [Fact]
+        public async void Add2SubscriptionsWithImage_2Update_ImageWasNotDeleted()
+        {
+            await _repository.DeleteSubscriber(DeviceId1).ContinueWith(x => _repository.DeleteSubscriber(DeviceId2))
+                .ContinueWith(x => _repository.DeleteSubscriber(DeviceId3));
+
+            await Task.Delay(2000);
+
+            await _repository.SaveSubscriber(DeviceId1, Longitude, Latitude1, "displayName1", _bse64StringImage1)
+                .ContinueWith(x => _repository.SaveSubscriber(DeviceId2, Longitude, LatitudeIn2, "displayName2", _bse64StringImage2));
+
+            await Task.Delay(2000);
+
+            await _repository.SaveSubscriber(DeviceId1, Longitude, Latitude1, "displayName1", null)
+                .ContinueWith(x => _repository.SaveSubscriber(DeviceId2, Longitude, LatitudeIn2, "displayName2", null));
+
+            await Task.Delay(2000);
+
+            await _repository.SaveSubscriber(DeviceId1, Longitude, Latitude1, "displayName1", null)
+                .ContinueWith(x => _repository.SaveSubscriber(DeviceId2, Longitude, LatitudeIn2, "displayName2", null));
+
+            await Task.Delay(2000);
+
+            var list = await _repository.GetNearestSubscribers(DeviceId1);
+
+            list.Should().NotBeNull();
+            list.Count.Should().Be(1);
+
+            var data = JsonConvert.DeserializeObject<SubscriptionData>(list[0]);
+            data.Should().NotBeNull();
+            data.Latitude.Should().Be(0);
+            data.Longitute.Should().Be(0);
+            data.DeviceId.Should().Be(DeviceId2);
+            data.DisplayName.Should().Be("displayName2");
+            data.ThumbnailUrl.Should().NotBeNullOrEmpty();
+
+            var resImage = await _repository.GetSubscriberImage(DeviceId1);
+
+            resImage.Should().NotBeNullOrWhiteSpace();
+            _bse64StringImage1.Should().NotBeNullOrWhiteSpace();
+
+            var imageBytes1 = GetImageBytes(resImage);
+            var imageBytes2 = GetImageBytes(_bse64StringImage1);
+
+            imageBytes1.Should().NotBeNull();
+            imageBytes2.Should().NotBeNull();
+
+            // File.WriteAllBytes("../../../img/3.jpg", imageBytes1);
+
+            imageBytes1.Should().BeEquivalentTo(imageBytes2);
+        }
+        
+        [Fact]
+        public async void Add2SubscriptionsWithImage_2Update_ImageWasDeleted()
+        {
+            await _repository.DeleteSubscriber(DeviceId1).ContinueWith(x => _repository.DeleteSubscriber(DeviceId2))
+                .ContinueWith(x => _repository.DeleteSubscriber(DeviceId3));
+
+            await Task.Delay(2000);
+
+            await _repository.SaveSubscriber(DeviceId1, Longitude, Latitude1, "displayName1", _bse64StringImage1)
+                .ContinueWith(x => _repository.SaveSubscriber(DeviceId2, Longitude, LatitudeIn2, "displayName2", _bse64StringImage2));
+
+            await Task.Delay(2000);
+
+            await _repository.SaveSubscriber(DeviceId1, Longitude, Latitude1, "displayName1", null)
+                .ContinueWith(x => _repository.SaveSubscriber(DeviceId2, Longitude, LatitudeIn2, "displayName2", null));
+
+            await Task.Delay(5000);
+
+            var list = await _repository.GetNearestSubscribers(DeviceId1);
+
+            list.Should().BeNullOrEmpty();
+
+            var resImage = await _repository.GetSubscriberImage(DeviceId1);
+
+            resImage.Should().BeNullOrWhiteSpace();
+        }
+
+        [Fact]
         public async void Add2SubscriptionsWithImage_NotInRadius_GetExisting_NotOk()
         {
             await _repository.DeleteSubscriber(DeviceId1).ContinueWith(x => _repository.DeleteSubscriber(DeviceId2))
