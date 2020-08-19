@@ -61,9 +61,8 @@ namespace CardExchangeService.Redis
                                 }
                                 catch (Exception e)
                                 {
-                                    Console.WriteLine(e);
+                                    Console.WriteLine(DateTime.Now.ToLongTimeString() + e);
                                     thumbnailUrl = string.Empty;
-                                    //TODO Log error 
                                 }
 
                                 resList.Add(JsonConvert.SerializeObject(
@@ -81,8 +80,7 @@ namespace CardExchangeService.Redis
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                //TODO Log error 
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + e);
             }
 
             return resList;
@@ -116,24 +114,26 @@ namespace CardExchangeService.Redis
 
             _deleteTimers[deviceId].Invoke();
 
-            return await await _redisClient.SetString(deviceId, JsonConvert.SerializeObject(imageData)).ContinueWith(
-               x => _redisClient.GeoAdd(longitude, latitude, deviceId));
+            var res = await _redisClient.SetString(deviceId, JsonConvert.SerializeObject(imageData));
+            return res && await _redisClient.GeoAdd(longitude, latitude, deviceId);
         }
 
         private void DeleteImages(string deviceId)
         {
             DeleteSubscriberImages(deviceId);
 
-            _deleteTimers[deviceId].Dispose();
-            _deleteTimers[deviceId] = null;
+            if (_deleteTimers.TryRemove(deviceId, out var delay))
+            {
+                delay?.Dispose();
+            }
         }
 
         public async Task<bool> DeleteSubscriber(string deviceId)
         {
-            DeleteSubscriberImages(deviceId);
+            DeleteImages(deviceId);
 
-            return await await _redisClient.RemoveKey(deviceId).ContinueWith(
-                x => _redisClient.GeoRemove(deviceId));
+            var res = await _redisClient.RemoveKey(deviceId);
+            return res && await _redisClient.GeoRemove(deviceId);
         }
 
         private async void DeleteSubscriberImages(string deviceId)
@@ -182,8 +182,7 @@ namespace CardExchangeService.Redis
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                //TODO Log error 
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + e);
             }
 
             return res;

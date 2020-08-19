@@ -3,6 +3,7 @@ using System;
 using Xunit;
 using CardExchangeService;
 using FluentAssertions;
+using System.Collections.Concurrent;
 
 namespace CardExchangeServiceTests
 {
@@ -96,5 +97,66 @@ namespace CardExchangeServiceTests
             
             _savedMessage.Should().Be("TEST_DISPOSE");
         }
+
+        #region Tests collection of timers
+
+        private readonly ConcurrentDictionary<string, DelayTimer> _deleteTimers = new ConcurrentDictionary<string, DelayTimer>();
+
+        private void AddTimerToCollection(string key)
+        {
+            if (!_deleteTimers.ContainsKey(key))
+            {
+                _deleteTimers.TryAdd(key, new DelayTimer(_ => TimerCallback(key), null, 5000));
+            }
+
+            _deleteTimers[key].Invoke();
+        }
+
+        private void TimerCallback(string key)
+        {
+            _savedMessage = "CALLBACK";
+
+            if (_deleteTimers.TryRemove(key, out var delay))
+            {
+                delay?.Dispose();
+            }
+        }
+
+
+        [Fact]
+        public void TestCollection_Init()
+        {
+            _savedMessage = "INIT";
+
+            AddTimerToCollection("key1");
+
+            _savedMessage.Should().Be("INIT");
+
+            Thread.Sleep(5010);
+
+            _savedMessage.Should().Be("CALLBACK");
+        }
+
+        [Fact]
+        public void TestCollection_Change()
+        {
+            _savedMessage = "INIT";
+
+            AddTimerToCollection("key1");
+
+            _savedMessage.Should().Be("INIT");
+
+            Thread.Sleep(1000);
+
+            AddTimerToCollection("key1");
+            
+            _savedMessage.Should().Be("INIT");
+
+            Thread.Sleep(5050);
+
+            _savedMessage.Should().Be("CALLBACK");
+        }
+
+        #endregion
     }
 }

@@ -84,8 +84,8 @@ namespace CardExchangeService.Redis
         public async Task<bool> SetString(string key, string value)
         {
             var db = Redis.GetDatabase();
-            return await await db.StringSetAsync(key, value).
-                ContinueWith(x => db.KeyExpireAsync(key, TimeSpan.FromSeconds(_redisKeyExpireTimeout)));
+            var res = await db.StringSetAsync(key, value);
+            return res && await db.KeyExpireAsync(key, TimeSpan.FromSeconds(_redisKeyExpireTimeout));
         }
 
         public async Task<RedisValue> GetString(string key)
