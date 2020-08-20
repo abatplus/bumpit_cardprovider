@@ -27,7 +27,7 @@ dotnet run
 1. Build server image local from the directory vswap_cardprovider/src
 
 ```
-docker build --build-arg NUGET_USERNAME=publisher --build-arg NUGET_PASSWORD=abat+2010-publisher --build-arg PORT_TCP_API=35041 --tag vswap-card-exchange-service .
+docker build --build-arg NUGET_USERNAME=publxxxxx --build-arg NUGET_PASSWORD=xxxxx --build-arg PORT_TCP_API=35041 --tag vswap-card-exchange-service .
 ```
 
 2. Run server local
