@@ -1,7 +1,8 @@
 # vswap-cardprovider
+
 .NET SignalR Service which is listening for subscribe requests of devices in radius of 25 meter and handles exchange of business cards data between owners of subscribed devices.
 
-# Steps to test server local
+## Steps to test server local
 
 1. Install docker desktop local.
 
@@ -21,7 +22,7 @@ dotnet run
 4. Use  http://0.0.0.0:5000 to connect to the server
 
 
-# How to build docker image
+## How to build docker image
 
 1. Build server image local from the directory vswap_cardprovider/src
 
@@ -50,7 +51,7 @@ docker push yourrepositoryname/vswap-card-exchange-service
         image: yourrepositoryname/vswap-card-exchange-service
 ```
 
-# Useful commands to test server in cloud
+## Useful commands to test server in cloud
 
 1. Connect to cluster.
 
@@ -100,10 +101,3 @@ redis-cli
 
 - View redis state with [redis commands](https://redis.io/commands).
 f.e. keys *, ...
-
-
-
-
-
-
-
