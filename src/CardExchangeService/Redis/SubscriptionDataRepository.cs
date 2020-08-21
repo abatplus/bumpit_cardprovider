@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CardExchangeService.Services;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Concurrent;
+using StackExchange.Redis;
 
 namespace CardExchangeService.Redis
 {
@@ -66,13 +67,15 @@ namespace CardExchangeService.Redis
                                 }
 
                                 resList.Add(JsonConvert.SerializeObject(
-                                    new SubscriptionData()
-                                    {
-                                        DeviceId = el.Member,
-                                        DisplayName = imageData?.DisplayName,
-                                        ThumbnailUrl = thumbnailUrl
-                                    }
-                                ));
+                                         new SubscriptionData()
+                                         {
+                                             DeviceId = el.Member,
+                                             DisplayName = imageData?.DisplayName,
+                                             ThumbnailUrl = thumbnailUrl,
+                                             Latitude = el.Position?.Latitude ?? 0,
+                                             Longitude = el.Position?.Longitude ?? 0
+                                         }
+                                     ));
                             }
                         }
                     }

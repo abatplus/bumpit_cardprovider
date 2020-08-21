@@ -81,8 +81,8 @@ namespace CardExchangeServiceTests
 
             var data = JsonConvert.DeserializeObject<SubscriptionData>(list[0]);
             data.Should().NotBeNull();
-            data.Latitude.Should().Be(0);
-            data.Longitute.Should().Be(0);
+            data.Latitude.Should().NotBe(0);
+            data.Longitude.Should().NotBe(0);
             data.DeviceId.Should().Be(DeviceId2);
             data.DisplayName.Should().Be("displayName2");
             data.ThumbnailUrl.Should().BeNullOrEmpty();
@@ -106,8 +106,8 @@ namespace CardExchangeServiceTests
 
             var data = JsonConvert.DeserializeObject<SubscriptionData>(list[0]);
             data.Should().NotBeNull();
-            data.Latitude.Should().Be(0);
-            data.Longitute.Should().Be(0);
+            data.Latitude.Should().NotBe(0);
+            data.Longitude.Should().NotBe(0);
             data.DeviceId.Should().Be(DeviceId2);
             data.DisplayName.Should().Be("displayName2");
             data.ThumbnailUrl.Should().BeNullOrEmpty();
@@ -153,8 +153,8 @@ namespace CardExchangeServiceTests
 
             var data = JsonConvert.DeserializeObject<SubscriptionData>(list[0]);
             data.Should().NotBeNull();
-            data.Latitude.Should().Be(0);
-            data.Longitute.Should().Be(0);
+            data.Latitude.Should().NotBe(0);
+            data.Longitude.Should().NotBe(0);
             data.DeviceId.Should().Be(DeviceId3);
             data.DisplayName.Should().Be("displayName3");
             data.ThumbnailUrl.Should().BeNullOrEmpty();
@@ -168,8 +168,8 @@ namespace CardExchangeServiceTests
 
             data = JsonConvert.DeserializeObject<SubscriptionData>(list[0]);
             data.Should().NotBeNull();
-            data.Latitude.Should().Be(0);
-            data.Longitute.Should().Be(0);
+            data.Latitude.Should().NotBe(0);
+            data.Longitude.Should().NotBe(0);
             data.DeviceId.Should().Be(DeviceId3);
             data.DisplayName.Should().Be("displayName3");
             data.ThumbnailUrl.Should().BeNullOrEmpty();
@@ -196,8 +196,8 @@ namespace CardExchangeServiceTests
 
             var data = JsonConvert.DeserializeObject<SubscriptionData>(list[0]);
             data.Should().NotBeNull();
-            data.Latitude.Should().Be(0);
-            data.Longitute.Should().Be(0);
+            data.Latitude.Should().NotBe(0);
+            data.Longitude.Should().NotBe(0);
             data.DeviceId.Should().Be(DeviceId2);
             data.DisplayName.Should().Be("displayName2");
             data.ThumbnailUrl.Should().NotBeNullOrEmpty();
@@ -227,8 +227,8 @@ namespace CardExchangeServiceTests
 
             var data = JsonConvert.DeserializeObject<SubscriptionData>(list[0]);
             data.Should().NotBeNull();
-            data.Latitude.Should().Be(0);
-            data.Longitute.Should().Be(0);
+            data.Latitude.Should().NotBe(0);
+            data.Longitude.Should().NotBe(0);
             data.DeviceId.Should().Be(DeviceId2);
             data.DisplayName.Should().Be("displayName2");
             data.ThumbnailUrl.Should().NotBeNullOrEmpty();
@@ -271,8 +271,8 @@ namespace CardExchangeServiceTests
 
             var data = JsonConvert.DeserializeObject<SubscriptionData>(list[0]);
             data.Should().NotBeNull();
-            data.Latitude.Should().Be(0);
-            data.Longitute.Should().Be(0);
+            data.Latitude.Should().NotBe(0);
+            data.Longitude.Should().NotBe(0);
             data.DeviceId.Should().Be(DeviceId2);
             data.DisplayName.Should().Be("displayName2");
             data.ThumbnailUrl.Should().NotBeNullOrEmpty();
@@ -353,8 +353,8 @@ namespace CardExchangeServiceTests
 
             var data = JsonConvert.DeserializeObject<SubscriptionData>(list[0]);
             data.Should().NotBeNull();
-            data.Latitude.Should().Be(0);
-            data.Longitute.Should().Be(0);
+            data.Latitude.Should().NotBe(0);
+            data.Longitude.Should().NotBe(0);
             data.DeviceId.Should().Be(DeviceId3);
             data.DisplayName.Should().Be("displayName3");
             data.ThumbnailUrl.Should().NotBeNullOrEmpty();
@@ -368,8 +368,8 @@ namespace CardExchangeServiceTests
 
             data = JsonConvert.DeserializeObject<SubscriptionData>(list[0]);
             data.Should().NotBeNull();
-            data.Latitude.Should().Be(0);
-            data.Longitute.Should().Be(0);
+            data.Latitude.Should().NotBe(0);
+            data.Longitude.Should().NotBe(0);
             data.DeviceId.Should().Be(DeviceId3);
             data.DisplayName.Should().Be("displayName3");
             data.ThumbnailUrl.Should().NotBeNullOrEmpty();
@@ -430,8 +430,8 @@ namespace CardExchangeServiceTests
 
             var data = JsonConvert.DeserializeObject<SubscriptionData>(list[0]);
             data.Should().NotBeNull();
-            data.Latitude.Should().Be(0);
-            data.Longitute.Should().Be(0);
+            data.Latitude.Should().NotBe(0);
+            data.Longitude.Should().NotBe(0);
             data.DeviceId.Should().Be(DeviceId2);
             data.DisplayName.Should().Be("displayName2");
             data.ThumbnailUrl.Should().NotBeNullOrEmpty();
@@ -461,8 +461,8 @@ namespace CardExchangeServiceTests
 
             var data = JsonConvert.DeserializeObject<SubscriptionData>(list[0]);
             data.Should().NotBeNull();
-            data.Latitude.Should().Be(0);
-            data.Longitute.Should().Be(0);
+            data.Latitude.Should().NotBe(0);
+            data.Longitude.Should().NotBe(0);
             data.DeviceId.Should().Be(DeviceId2);
             data.DisplayName.Should().Be("displayName2");
             data.ThumbnailUrl.Should().NotBeNullOrEmpty();
@@ -502,16 +502,16 @@ namespace CardExchangeServiceTests
 
             var data1 = JsonConvert.DeserializeObject<SubscriptionData>(list1[0]);
             data1.Should().NotBeNull();
-            data1.Latitude.Should().Be(0);
-            data1.Longitute.Should().Be(0);
+            data1.Latitude.Should().NotBe(0);
+            data1.Longitude.Should().NotBe(0);
             data1.DeviceId.Should().Be(DeviceId2);
             data1.DisplayName.Should().Be("displayName2");
             data1.ThumbnailUrl.Should().NotBeNullOrEmpty();
 
             var data2 = JsonConvert.DeserializeObject<SubscriptionData>(list2[0]);
             data2.Should().NotBeNull();
-            data2.Latitude.Should().Be(0);
-            data2.Longitute.Should().Be(0);
+            data2.Latitude.Should().NotBe(0);
+            data2.Longitude.Should().NotBe(0);
             data2.DeviceId.Should().Be(DeviceId1);
             data2.DisplayName.Should().Be("displayName1");
             data2.ThumbnailUrl.Should().NotBeNullOrEmpty();

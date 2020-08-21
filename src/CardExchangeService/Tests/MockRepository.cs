@@ -55,11 +55,11 @@ namespace CardExchangeService.Tests
             var subscriber = subscribers.FirstOrDefault(s => s.DeviceId == deviceId);
             if (subscriber == null)
             {
-                subscribers.Add(new SubscriptionData { DeviceId = deviceId, Longitute = longitude, Latitude = latitude, DisplayName = displayName });
+                subscribers.Add(new SubscriptionData { DeviceId = deviceId, Longitude = longitude, Latitude = latitude, DisplayName = displayName });
             }
             else
             {
-                subscriber.Longitute = longitude;
+                subscriber.Longitude = longitude;
                 subscriber.Latitude = latitude;
                 subscriber.DisplayName = displayName;
             }
