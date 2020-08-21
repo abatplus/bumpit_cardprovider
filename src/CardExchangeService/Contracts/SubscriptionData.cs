@@ -6,8 +6,8 @@ namespace CardExchangeService
     {
         [JsonProperty("latitude")]
         public double Latitude { get; set; }
-        [JsonProperty("longitute")]
-        public double Longitute { get; set; }
+        [JsonProperty("longitude")]
+        public double Longitude { get; set; }
         [JsonProperty("thumbnailUrl")]
         public string ThumbnailUrl { get; set; }
     }

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CardExchangeService.Services;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Concurrent;
+using StackExchange.Redis;
 
 namespace CardExchangeService.Redis
 {
@@ -66,13 +67,15 @@ namespace CardExchangeService.Redis
                                 }
 
                                 resList.Add(JsonConvert.SerializeObject(
-                                    new SubscriptionData()
-                                    {
-                                        DeviceId = el.Member,
-                                        DisplayName = imageData?.DisplayName,
-                                        ThumbnailUrl = thumbnailUrl
-                                    }
-                                ));
+                                         new SubscriptionData()
+                                         {
+                                             DeviceId = el.Member,
+                                             DisplayName = imageData?.DisplayName,
+                                             ThumbnailUrl = thumbnailUrl,
+                                             Latitude = el.Position?.Latitude ?? 0,
+                                             Longitude = el.Position?.Longitude ?? 0
+                                         }
+                                     ));
                             }
                         }
                     }
@@ -96,12 +99,17 @@ namespace CardExchangeService.Redis
 
             if (!string.IsNullOrEmpty(image))
             {
+                // is used at reconnect instead of unsubscribe call 
+                DeleteImages(deviceId);
+
+                // called at subscribe
                 _imageFileService.SaveImageToFile(image, out var imageFilePath, out var thumbFilePath);
                 imageData.ImageFilePath = imageFilePath ?? string.Empty;
                 imageData.ThumbnailFilePath = thumbFilePath ?? string.Empty;
             }
             else
             {
+                // called at update
                 var serverImageData = await GetImageData(deviceId);
                 imageData.ImageFilePath = serverImageData?.ImageFilePath ?? string.Empty;
                 imageData.ThumbnailFilePath = serverImageData?.ThumbnailFilePath ?? string.Empty;
