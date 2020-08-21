@@ -96,12 +96,17 @@ namespace CardExchangeService.Redis
 
             if (!string.IsNullOrEmpty(image))
             {
+                // is used at reconnect instead of unsubscribe call 
+                DeleteImages(deviceId);
+
+                // called at subscribe
                 _imageFileService.SaveImageToFile(image, out var imageFilePath, out var thumbFilePath);
                 imageData.ImageFilePath = imageFilePath ?? string.Empty;
                 imageData.ThumbnailFilePath = thumbFilePath ?? string.Empty;
             }
             else
             {
+                // called at update
                 var serverImageData = await GetImageData(deviceId);
                 imageData.ImageFilePath = serverImageData?.ImageFilePath ?? string.Empty;
                 imageData.ThumbnailFilePath = serverImageData?.ThumbnailFilePath ?? string.Empty;
