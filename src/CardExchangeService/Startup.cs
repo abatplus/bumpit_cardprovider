@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.IO;
+using Microsoft.AspNetCore.Routing;
 
 namespace CardExchangeService
 {
@@ -54,52 +55,42 @@ namespace CardExchangeService
             string thumbPath = Configuration["THUMBNAILS_PATH"] ?? Configuration["ImageFileSettings:ThumbFolder"];
             string imgsUrlPathPrefix = Configuration["IMAGES_URL_PATH_PREFIX"] ?? Configuration["ImageFileSettings:ImgUrlPathPrefix"];
             string imgPath = Configuration["IMAGES_PATH"] ?? Configuration["ImageFileSettings:ImagesFolder"];
+            string templUrlPathPrefix = Configuration["TEMPL_URL_PATH_PREFIX"] ?? Configuration["ImageFileSettings:TemplUrlPathPrefix"];
+            string templPath = Configuration["TEMPL_PATH"] ?? Configuration["ImageFileSettings:TemplatesFolder"];
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
                 endpoints.MapHub<CardExchangeHub>("/swaphub");
-                endpoints.MapGet(thumbUrlPathPrefix + "/{name}", async context =>
-                 {
-                     try
-                     {
-                         var name = context.Request.RouteValues["name"];
-                         if (name.ToString().Contains(".."))
-                         {
-                             throw new Exception();
-                         }
-
-                         String filename = Path.GetFullPath(thumbPath) + Path.DirectorySeparatorChar + name;
-                         await context.Response.SendFileAsync(filename);
-                     }
-                     catch (Exception e)
-                     {
-                         Console.Write(e.ToString());
-                         context.Response.StatusCode = 404;
-                         await context.Response.WriteAsync("Error");
-                     }
-                 });
-                endpoints.MapGet(imgsUrlPathPrefix + "/{name}", async context =>
-                  {
-                      try
-                      {
-                          var name = context.Request.RouteValues["name"];
-                          if (name.ToString().Contains(".."))
-                          {
-                              throw new Exception();
-                          }
-
-                          String filename = Path.GetFullPath(imgPath) + Path.DirectorySeparatorChar + name;
-                          await context.Response.SendFileAsync(filename);
-                      }
-                      catch (Exception e)
-                      {
-                          Console.Write(e.ToString());
-                          context.Response.StatusCode = 404;
-                          await context.Response.WriteAsync("Error");
-                      }
-                  });
+                ConfigFileGet(endpoints, thumbUrlPathPrefix, thumbPath);
+                ConfigFileGet(endpoints, imgsUrlPathPrefix, imgPath);
+                ConfigFileGet(endpoints, templUrlPathPrefix, templPath);
             });
         }
+
+        private void ConfigFileGet(IEndpointRouteBuilder endpoints, string urlPathPrefix, string filePath)
+        {
+            endpoints.MapGet(urlPathPrefix + "/{name}", async context =>
+            {
+                try
+                {
+                    var name = context.Request.RouteValues["name"];
+                    if (name.ToString().Contains(".."))
+                    {
+                        throw new Exception();
+                    }
+
+                    String filename = Path.GetFullPath(filePath) + Path.DirectorySeparatorChar + name;
+                    await context.Response.SendFileAsync(filename);
+                }
+                catch (Exception e)
+                {
+                    Console.Write(e.ToString());
+                    context.Response.StatusCode = 404;
+                    await context.Response.WriteAsync("Error");
+                }
+            });
+        }
+
     }
 }
